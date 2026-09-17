@@ -1,3 +1,4 @@
+import { CurtainIntro } from "@/components/landing/CurtainIntro";
 import { Hero } from "@/components/landing/hero";
 import { Navbar } from "@/components/landing/navbar";
 import { CategoriesSection } from "@/components/landing/CategoriesSection";
@@ -12,6 +13,7 @@ import { Footer } from "@/components/footer";
 export default function Home() {
   return (
     <main className="landing-page">
+      <CurtainIntro />
       <Navbar />
       <Hero />
       <ThemeSection />

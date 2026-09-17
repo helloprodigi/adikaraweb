@@ -19,12 +19,37 @@ const categoryCards = [
 ];
 
 export function CategoriesSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.35, rootMargin: "0px 0px -100px 0px" }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const middleStart = categoryCards.length;
   const [activeIndex, setActiveIndex] = useState(middleStart);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAnimating, setIsAnimating] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselWidth, setCarouselWidth] = useState(0);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const startXRef = useRef(0);
+  const isPointerDownRef = useRef(false);
 
   const selectedIndex = ((activeIndex % categoryCards.length) + categoryCards.length) % categoryCards.length;
   const cardWidth = Math.min(carouselWidth * 0.8, 1120);
@@ -64,29 +89,76 @@ export function CategoriesSection() {
   }, []);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isDragging) return;
 
     const interval = window.setInterval(() => {
       setActiveIndex((currentIndex) => currentIndex + 1);
     }, 3200);
 
     return () => window.clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, isDragging]);
 
   const moveSlide = (direction: number) => {
     setActiveIndex((currentIndex) => currentIndex + direction);
   };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    isPointerDownRef.current = true;
+    startXRef.current = e.clientX;
+    setIsDragging(true);
+    setDragOffset(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    const deltaX = e.clientX - startXRef.current;
+    setDragOffset(deltaX);
+  };
+
+  const handlePointerUpOrCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+
+    const threshold = 40;
+    if (dragOffset < -threshold) {
+      setActiveIndex((currentIndex) => currentIndex + 1);
+    } else if (dragOffset > threshold) {
+      setActiveIndex((currentIndex) => currentIndex - 1);
+    }
+
+    setDragOffset(0);
+    setIsDragging(false);
+  };
+
   return (
-    <section className="categories-section" id="competition" aria-labelledby="categories-title">
+    <section
+      className={`categories-section ${isVisible ? "is-visible" : ""}`}
+      id="competition"
+      aria-labelledby="categories-title"
+      ref={sectionRef}
+    >
       <div className="categories-content">
         <h2 id="categories-title">Competition Categories</h2>
 
-        <div className="category-carousel" aria-live="polite" ref={carouselRef}>
+        <div
+          className={`category-carousel ${isDragging ? "is-dragging" : ""}`}
+          aria-live="polite"
+          ref={carouselRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUpOrCancel}
+          onPointerCancel={handlePointerUpOrCancel}
+        >
           <div
-            className={`category-track ${isAnimating ? "" : "no-transition"}`}
+            className={`category-track ${isAnimating && !isDragging ? "" : "no-transition"}`}
             onTransitionEnd={handleTrackTransitionEnd}
-            style={{ transform: `translate3d(${trackOffset}px, 0, 0)` } as CSSProperties}
+            style={{ transform: `translate3d(${trackOffset + dragOffset}px, 0, 0)` } as CSSProperties}
           >
             {[...categoryCards, ...categoryCards, ...categoryCards].map((card, index) => (
               <Image
@@ -97,6 +169,7 @@ export function CategoriesSection() {
                 width={1302}
                 height={641}
                 priority={index === categoryCards.length}
+                draggable={false}
               />
             ))}
           </div>

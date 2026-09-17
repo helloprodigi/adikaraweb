@@ -1,8 +1,36 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export function SponsorSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.35, rootMargin: "0px 0px -100px 0px" }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="sponsor-section" id="sponsor" aria-labelledby="sponsor-title">
+    <section
+      className={`sponsor-section ${isVisible ? "is-visible" : ""}`}
+      id="sponsor"
+      aria-labelledby="sponsor-title"
+      ref={sectionRef}
+    >
       <Image
         className="sponsor-decor sponsor-decor-left"
         src="/landing/vertical-decor.svg"

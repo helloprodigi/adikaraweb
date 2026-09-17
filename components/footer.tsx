@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 const quickLinks = [
   { label: "About Us", href: "#theme" },
@@ -15,8 +18,28 @@ const categoriesLinks = [
 ];
 
 export function Footer() {
+  const footerRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.25, rootMargin: "0px 0px -60px 0px" }
+    );
+
+    if (footerRef.current) {
+      observer.observe(footerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <footer className="site-footer" id="contact">
+    <footer className={`site-footer ${isVisible ? "is-visible" : ""}`} id="contact" ref={footerRef}>
       <div className="footer-top">
         <div className="footer-container">
           {/* Column 1: Brand & Info */}
