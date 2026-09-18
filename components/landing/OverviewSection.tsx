@@ -69,6 +69,16 @@ export function OverviewSection() {
     requestAnimationFrame(animateCount);
   }, [hasStarted]);
 
+  // Autoplay the video once the overview reveal animation has finished.
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const revealDuration = 1100;
+    const timer = setTimeout(() => setIsPlayingVideo(true), revealDuration);
+
+    return () => clearTimeout(timer);
+  }, [isVisible]);
+
   return (
     <section
       className={`overview-section ${isVisible ? "is-visible" : ""}`}
@@ -98,7 +108,7 @@ export function OverviewSection() {
           {isPlayingVideo ? (
             <iframe
               className="overview-iframe"
-              src="https://www.youtube-nocookie.com/embed/JcN7Y3gKiOg?autoplay=1&rel=0&modestbranding=1&controls=0&playsinline=1"
+              src="https://www.youtube-nocookie.com/embed/JcN7Y3gKiOg?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&playsinline=1"
               title="ADIKARA 2026 Overview Video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

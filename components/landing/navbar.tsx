@@ -7,18 +7,16 @@ const navigationItems = [
   { label: "Overview", href: "#overview" },
   { label: "Timeline", href: "#timeline" },
   { label: "Competition", href: "#competition" },
-  { label: "Team", href: "#team" },
-  { label: "Guidebook", href: "#guidebook" },
+  { label: "Team", href: "#myprodigi" },
+  { label: "Guidebook", href: "#download-resource" },
 ];
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("#overview");
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const scrolledRef = useRef(false);
-  const hiddenRef = useRef(false);
   const activeRef = useRef("#overview");
 
   const handleNavClick = (href: string) => {
@@ -33,7 +31,6 @@ export function Navbar() {
       .map((item) => ({ href: item.href, el: document.querySelector<HTMLElement>(item.href) }))
       .filter((t) => t.el !== null);
 
-    let lastScrollY = window.scrollY;
     let ticking = false;
 
     const update = () => {
@@ -52,12 +49,6 @@ export function Navbar() {
         setIsScrolled(nextScrolled);
       }
 
-      const nextHidden = y >= 240 && y > lastScrollY && y - lastScrollY > 8;
-      if (nextHidden !== hiddenRef.current) {
-        hiddenRef.current = nextHidden;
-        setIsHidden(nextHidden);
-      }
-
       let current = "#overview";
       for (const target of targets) {
         if (target.el && target.el.getBoundingClientRect().top <= 170) {
@@ -69,7 +60,6 @@ export function Navbar() {
         setActiveItem(current);
       }
 
-      lastScrollY = y;
       ticking = false;
     };
 
@@ -103,7 +93,7 @@ export function Navbar() {
       </div>
 
       <header
-        className={`floating-navbar ${isScrolled ? "is-scrolled" : ""} ${isHidden ? "is-hidden" : ""}`}
+        className={`floating-navbar ${isScrolled ? "is-scrolled" : ""}`}
         aria-label="Main navigation"
       >
         <button

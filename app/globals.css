@@ -71,10 +71,6 @@ a {
   box-shadow: 0 14px 44px rgba(16, 20, 43, 0.14);
 }
 
-body:not(.hero-animate) .floating-navbar.is-hidden {
-  transform: translateX(-50%) translateY(-140%);
-}
-
 /* Scroll progress bar */
 .scroll-progress {
   height: 3px;
@@ -1422,10 +1418,6 @@ body:not(.hero-animate) .floating-navbar.is-hidden {
 }
 
 @media (max-width: 768px) {
-  body:not(.hero-animate) .floating-navbar.is-hidden {
-    transform: translateY(-140%);
-  }
-
   /* Floating Navbar Mobile (Hamburger Toggle Top LEFT) */
   .floating-navbar {
     align-items: center;
