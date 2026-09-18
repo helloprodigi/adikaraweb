@@ -1,8 +1,39 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 export function Hero() {
+  const heroRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let ticking = false;
+
+    const update = () => {
+      const distance = Math.min(Math.max(window.scrollY, 0), window.innerHeight);
+      hero.style.setProperty("--hero-parallax", `${distance}px`);
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <section className="hero" id="overview" aria-labelledby="hero-title">
+    <section ref={heroRef} className="hero" id="overview" aria-labelledby="hero-title">
       <Image
         className="hero-decor hero-decor-left"
         src="/landing/hero/hero-decor.svg"

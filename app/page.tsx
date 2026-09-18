@@ -1,6 +1,7 @@
 import { CurtainIntro } from "@/components/landing/CurtainIntro";
 import { Hero } from "@/components/landing/hero";
 import { Navbar } from "@/components/landing/navbar";
+import { GlowField } from "@/components/landing/GlowField";
 import { CategoriesSection } from "@/components/landing/CategoriesSection";
 import { DownloadResourceSection } from "@/components/landing/DownloadResourceSection";
 import { MyProdigiSection } from "@/components/landing/MyProdigiSection";
@@ -15,6 +16,7 @@ export default function Home() {
     <main className="landing-page">
       <CurtainIntro />
       <Navbar />
+      <GlowField />
       <Hero />
       <ThemeSection />
       <OverviewSection />

@@ -162,7 +162,9 @@ export function CategoriesSection() {
           >
             {[...categoryCards, ...categoryCards, ...categoryCards].map((card, index) => (
               <Image
-                className="category-card"
+                className={`category-card ${
+                  index % categoryCards.length === selectedIndex ? "is-active" : ""
+                }`}
                 key={`${card.name}-${index}`}
                 src={card.src}
                 alt={`${card.name} competition category`}

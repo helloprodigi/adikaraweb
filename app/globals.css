@@ -19,6 +19,11 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 124px;
+}
+
 body {
   margin: 0;
   background: var(--background);
@@ -39,28 +44,69 @@ a {
 
 .floating-navbar {
   align-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   display: flex;
+  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
   gap: 32px;
   justify-content: space-between;
   left: 50%;
   max-width: 1440px;
-  padding: 19px clamp(32px, 4.2vw, 64px);
+  padding: 16px clamp(28px, 3.8vw, 56px);
   position: fixed;
   top: 24px;
   transform: translateX(-50%);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
   width: calc(100% - 48px);
+  will-change: transform;
   z-index: 100;
+}
+
+.floating-navbar.is-scrolled {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 14px 44px rgba(16, 20, 43, 0.14);
+}
+
+body:not(.hero-animate) .floating-navbar.is-hidden {
+  transform: translateX(-50%) translateY(-140%);
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  height: 3px;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  transform: translateZ(0);
+  z-index: 200;
+}
+
+.scroll-progress-inner {
+  background: linear-gradient(90deg, #ed1c24, #ffca28);
+  border-radius: 999px;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  will-change: transform;
+}
+
+/* Faint round red glow blobs drifting over the page background */
+.glow-field {
+  display: block;
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 40;
 }
 
 .brand {
   display: block;
-  flex: 0 0 286px;
+  flex: 0 0 240px;
   line-height: 0;
 }
 
@@ -73,13 +119,36 @@ a {
   align-items: center;
   display: flex;
   gap: 28px;
-  margin-left: auto;
+  margin: 0 auto;
 }
 
 .nav-links a {
+  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
   font-size: 15px;
+  font-weight: 500;
+  position: relative;
   transition: color 160ms ease;
   white-space: nowrap;
+}
+
+.nav-links a::after {
+  background: linear-gradient(90deg, #ed1c24, #ffca28);
+  border-radius: 2px;
+  bottom: -6px;
+  content: "";
+  height: 2px;
+  left: 0;
+  position: absolute;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+}
+
+.nav-links a:hover::after,
+.nav-links a.is-active::after {
+  transform: scaleX(1);
+  transform-origin: left;
 }
 
 .nav-links a:hover,
@@ -93,17 +162,27 @@ a {
   align-items: center;
   background: var(--adikara-red);
   border-radius: 999px;
+  box-shadow: 0 4px 14px -6px rgba(201, 7, 15, 0.4);
   color: white;
   display: inline-flex;
+  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
   font-weight: 600;
   justify-content: center;
-  transition: background 160ms ease, transform 160ms ease;
+  position: relative;
+  transition: background 160ms ease, transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 220ms ease;
 }
 
 .button:hover,
 .button:focus-visible {
   background: var(--adikara-dark-red);
+  box-shadow: 0 12px 30px -10px rgba(201, 7, 15, 0.55);
   transform: translateY(-2px);
+}
+
+.button:active {
+  box-shadow: 0 6px 16px -8px rgba(201, 7, 15, 0.5);
+  transform: translateY(0) scale(0.97);
 }
 
 .button-small {
@@ -138,7 +217,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  margin: 105px auto 0;
+  margin: 140px auto 0;
   position: relative;
   text-align: center;
   z-index: 1;
@@ -148,8 +227,8 @@ a {
   align-items: center;
   display: flex;
   gap: 25px;
-  margin-bottom: 28px;
-  transform: translateY(-45px);
+  margin-bottom: 20px;
+  transform: none;
 }
 
 .partner-logos img {
@@ -196,10 +275,12 @@ a {
 
 .hero-decor-left {
   left: -32px;
+  translate: 0 calc(var(--hero-parallax, 0px) * 0.16);
 }
 
 .hero-decor-right {
   right: -32px;
+  translate: 0 calc(var(--hero-parallax, 0px) * 0.24);
   transform: scaleX(-1);
 }
 
@@ -329,7 +410,16 @@ a {
   justify-content: center;
   margin: 0 auto 32px;
   max-width: 1200px;
+  overflow: hidden;
   position: relative;
+}
+
+.overview-iframe {
+  border: 0;
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
 }
 
 .play-button {
@@ -341,8 +431,30 @@ a {
   display: flex;
   height: 82px;
   justify-content: center;
+  position: relative;
   transition: background 160ms ease, transform 160ms ease;
   width: 82px;
+}
+
+.play-button::after {
+  animation: playPulse 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+@keyframes playPulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
 }
 
 .play-button:hover,
@@ -473,6 +585,78 @@ a {
   font-size: 34px;
   min-width: 366px;
   padding: 18px 34px;
+  position: relative;
+}
+
+.prize-row strong.is-complete {
+  animation: prizeCapsulePop 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 16px 44px rgba(237, 28, 36, 0.32);
+}
+
+.prize-confetti {
+  inset: -40px -8% -220px;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.prize-confetti-piece {
+  animation:
+    confettiDrop var(--duration, 2.6s) linear var(--delay, 0s) forwards,
+    confettiDrift var(--duration, 2.6s) ease-out var(--delay, 0s) forwards;
+  background: var(--confetti-color, #ed1c24);
+  border-radius: 2px;
+  height: var(--confetti-h, 11px);
+  left: var(--x, 50%);
+  opacity: 0;
+  position: absolute;
+  top: var(--y-start, 42px);
+  width: var(--confetti-w, 7px);
+  will-change: transform, opacity;
+}
+
+@keyframes confettiDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.15, 0.8, 0.4, 1);
+  }
+  10% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(var(--rise, -60px));
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--fall, 260px));
+  }
+}
+
+@keyframes confettiDrift {
+  from {
+    rotate: 0deg;
+    translate: 0 0;
+  }
+  to {
+    rotate: var(--rot, 0deg);
+    translate: var(--drift, 0px) 0;
+  }
+}
+
+@keyframes prizeCapsulePop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .timeline-content h2 {
@@ -536,6 +720,26 @@ a {
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.2), 0 0 12px rgba(237, 28, 36, 0.5);
   transform: scale(1.15);
+}
+
+.timeline-item.is-reached .timeline-node::after {
+  animation: nodeReachedRing 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  border: 2px solid rgba(237, 28, 36, 0.4);
+  border-radius: 50%;
+  content: "";
+  inset: -10px;
+  position: absolute;
+}
+
+@keyframes nodeReachedRing {
+  from {
+    opacity: 0.9;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.25);
+  }
 }
 
 .timeline-item h3 {
@@ -634,9 +838,17 @@ a {
   height: auto;
   object-fit: contain;
   pointer-events: none;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), filter 0.55s ease;
   user-select: none;
   -webkit-user-drag: none;
   width: 100%;
+}
+
+.category-card:not(.is-active) {
+  filter: saturate(0.8);
+  opacity: 0.45;
+  transform: scale(0.9);
 }
 
 .category-controls {
@@ -762,14 +974,39 @@ a {
   min-width: 206px;
 }
 
-.myprodigi-mockup {
+.myprodigi-mockup-wrap {
   height: auto;
   margin-right: -24px;
   max-width: min(44vw, 530px);
   position: relative;
-  transform: translateX(24px);
   width: 100%;
   z-index: 1;
+}
+
+.myprodigi-mockup-float {
+  animation: mockFloat 7s ease-in-out infinite;
+  perspective: 1200px;
+  will-change: transform;
+}
+
+.myprodigi-mockup-tilt {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.myprodigi-mockup {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+@keyframes mockFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 /* Sponsor Section */
@@ -1152,6 +1389,14 @@ a {
   width: 36px;
 }
 
+.download-circle svg {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.resource-button:hover .download-circle svg {
+  transform: translateY(2px);
+}
+
 .resource-button:hover .download-circle {
   background: #fff;
   border-color: #fff;
@@ -1177,13 +1422,15 @@ a {
 }
 
 @media (max-width: 768px) {
+  body:not(.hero-animate) .floating-navbar.is-hidden {
+    transform: translateY(-140%);
+  }
+
   /* Floating Navbar Mobile (Hamburger Toggle Top LEFT) */
   .floating-navbar {
     align-items: center;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
     border-radius: 999px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     display: flex;
@@ -1328,6 +1575,27 @@ a {
   .sidebar-links a:hover,
   .sidebar-links a:active {
     color: var(--adikara-red);
+  }
+
+  .mobile-sidebar.is-open .sidebar-links a {
+    animation: sidebarLinkIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .mobile-sidebar.is-open .sidebar-links a:nth-child(1) { animation-delay: 0.05s; }
+  .mobile-sidebar.is-open .sidebar-links a:nth-child(2) { animation-delay: 0.1s; }
+  .mobile-sidebar.is-open .sidebar-links a:nth-child(3) { animation-delay: 0.15s; }
+  .mobile-sidebar.is-open .sidebar-links a:nth-child(4) { animation-delay: 0.2s; }
+  .mobile-sidebar.is-open .sidebar-links a:nth-child(5) { animation-delay: 0.25s; }
+
+  @keyframes sidebarLinkIn {
+    from {
+      opacity: 0;
+      transform: translateX(-14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .sidebar-footer {
@@ -1683,10 +1951,14 @@ a {
     margin-top: 8px;
   }
 
-  .myprodigi-mockup {
+  .myprodigi-mockup-wrap {
     margin-right: 0;
     max-width: min(85vw, 360px);
     transform: none;
+  }
+
+  .myprodigi-mockup-float {
+    animation-duration: 9s;
   }
 
   .myprodigi-section::before {
@@ -1815,61 +2087,41 @@ a {
 }
 
 /* ==========================================================================
-   Red Curtain Opening Intro Animation (Fluid & Elegant)
+   Red Curtain Grid Reveal Intro
    ========================================================================== */
 .curtain-wrapper {
-  align-items: center;
-  display: flex;
   inset: 0;
-  justify-content: center;
   overflow: hidden;
   position: fixed;
   z-index: 99999;
 }
 
-.curtain-panel {
-  background: linear-gradient(135deg, #d60811 0%, #a4030a 50%, #6e0005 100%);
-  bottom: 0;
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.5);
+.curtain-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--curtain-columns, 8), 1fr);
+  grid-template-rows: repeat(var(--curtain-rows, 4), 1fr);
   height: 100%;
-  position: absolute;
-  top: 0;
-  transition: transform 2.2s cubic-bezier(0.76, 0, 0.18, 1);
-  width: 50.5%;
-  z-index: 1;
-}
-
-.curtain-texture {
-  background: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.22) 0px,
-    transparent 28px,
-    rgba(255, 255, 255, 0.09) 56px,
-    transparent 84px
-  );
   inset: 0;
-  opacity: 0.75;
   position: absolute;
+  width: 100%;
 }
 
-.curtain-left {
-  border-right: 1.5px solid rgba(255, 255, 255, 0.2);
-  left: 0;
-  transform-origin: left center;
+.curtain-cell {
+  position: relative;
 }
 
-.curtain-right {
-  border-left: 1.5px solid rgba(255, 255, 255, 0.2);
-  right: 0;
-  transform-origin: right center;
+.curtain-cell-fill {
+  background: var(--adikara-red);
+  inset: -1px;
+  position: absolute;
+  transform: translateX(0);
+  transition: transform 0.85s cubic-bezier(0.76, 0, 0.24, 1);
+  transition-delay: var(--cell-delay, 0s);
+  will-change: transform;
 }
 
-.curtain-wrapper.is-opening .curtain-left {
-  transform: translateX(-100%);
-}
-
-.curtain-wrapper.is-opening .curtain-right {
-  transform: translateX(100%);
+.curtain-wrapper.is-opening .curtain-cell-fill {
+  transform: translateX(var(--pull-x, -101%));
 }
 
 /* ==========================================================================
@@ -1883,12 +2135,12 @@ body.hero-animate .floating-navbar {
 }
 
 body.hero-animate .hero-decor-left {
-  animation: decorMergeLeftDesktop 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+  animation: decorMergeLeftDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatLeft 4.5s ease-in-out 3s infinite;
   opacity: 0;
 }
 
 body.hero-animate .hero-decor-right {
-  animation: decorMergeRightDesktop 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+  animation: decorMergeRightDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatRight 4.5s ease-in-out 3s infinite;
   opacity: 0;
 }
 
@@ -1951,6 +2203,24 @@ body.hero-animate .button-hero {
   to {
     opacity: 1;
     transform: translateX(0) scaleX(-1);
+  }
+}
+
+@keyframes wingFloatLeft {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes wingFloatRight {
+  0%, 100% {
+    transform: translateY(0) scaleX(-1);
+  }
+  50% {
+    transform: translateY(-14px) scaleX(-1);
   }
 }
 
@@ -2047,6 +2317,17 @@ body.hero-animate .button-hero {
 }
 
 /* ==========================================================================
+   Hero Idle Motion (after the entrance sequence finishes)
+   ========================================================================== */
+body.hero-idle .hero-decor-left {
+  animation: wingFloatLeft 5.5s ease-in-out infinite;
+}
+
+body.hero-idle .hero-decor-right {
+  animation: wingFloatRight 5.5s ease-in-out infinite;
+}
+
+/* ==========================================================================
    Scroll-Driven Reveal Animations for Landing Page Sections
    ========================================================================== */
 
@@ -2092,7 +2373,7 @@ body.hero-animate .button-hero {
   transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.myprodigi-mockup {
+.myprodigi-mockup-wrap {
   opacity: 0;
   transform: translateX(60px) scale(0.94);
   transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
@@ -2103,13 +2384,13 @@ body.hero-animate .button-hero {
   transform: translateX(0);
 }
 
-.myprodigi-section.is-visible .myprodigi-mockup {
+.myprodigi-section.is-visible .myprodigi-mockup-wrap {
   opacity: 1;
   transform: translateX(24px) scale(1);
 }
 
 @media (max-width: 768px) {
-  .myprodigi-section.is-visible .myprodigi-mockup {
+  .myprodigi-section.is-visible .myprodigi-mockup-wrap {
     transform: none;
   }
 }
@@ -2133,12 +2414,44 @@ body.hero-animate .button-hero {
 .sponsor-dots .dot {
   opacity: 0;
   transform: scale(0);
-  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.sponsor-dots .dot:nth-child(1) { transition-delay: 0.1s; }
-.sponsor-dots .dot:nth-child(2) { transition-delay: 0.2s; }
-.sponsor-dots .dot:nth-child(3) { transition-delay: 0.3s; }
+.sponsor-section.is-visible .dot:nth-child(1) {
+  animation: dotPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both,
+    dotPulse 2.4s ease-in-out 1s infinite;
+}
+
+.sponsor-section.is-visible .dot:nth-child(2) {
+  animation: dotPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both,
+    dotPulse 2.4s ease-in-out 1.15s infinite;
+}
+
+.sponsor-section.is-visible .dot:nth-child(3) {
+  animation: dotPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both,
+    dotPulse 2.4s ease-in-out 1.3s infinite;
+}
+
+@keyframes dotPop {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.3);
+  }
+}
 
 .sponsor-content h2,
 .sponsor-description,
@@ -2164,7 +2477,6 @@ body.hero-animate .button-hero {
 
 .sponsor-section.is-visible .sponsor-dots .dot {
   opacity: 1;
-  transform: scale(1);
 }
 
 .sponsor-section.is-visible .sponsor-content h2,
@@ -2207,4 +2519,18 @@ body.hero-animate .button-hero {
 .site-footer.is-visible .footer-bg-card {
   opacity: 1;
   transform: translateY(0) scaleX(-1) rotate(0deg);
+}
+
+/* ==========================================================================
+   Accessibility: Respect reduced-motion preference
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

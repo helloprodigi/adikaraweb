@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const navigationItems = [
   { label: "Overview", href: "#overview" },
@@ -14,15 +14,98 @@ const navigationItems = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeItem, setActiveItem] = useState("#overview");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const scrolledRef = useRef(false);
+  const hiddenRef = useRef(false);
+  const activeRef = useRef("#overview");
 
   const handleNavClick = (href: string) => {
     setActiveItem(href);
     setIsOpen(false);
   };
 
+  useEffect(() => {
+    const progressInner = progressRef.current;
+    const body = document.body;
+    const targets = navigationItems
+      .map((item) => ({ href: item.href, el: document.querySelector<HTMLElement>(item.href) }))
+      .filter((t) => t.el !== null);
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const update = () => {
+      const y = window.scrollY;
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      const progress = max > 0 ? Math.min(y / max, 1) : 0;
+
+      if (progressInner) {
+        progressInner.style.transform = `scaleX(${progress})`;
+      }
+
+      const nextScrolled = y > 24;
+      if (nextScrolled !== scrolledRef.current) {
+        scrolledRef.current = nextScrolled;
+        setIsScrolled(nextScrolled);
+      }
+
+      const nextHidden = y >= 240 && y > lastScrollY && y - lastScrollY > 8;
+      if (nextHidden !== hiddenRef.current) {
+        hiddenRef.current = nextHidden;
+        setIsHidden(nextHidden);
+      }
+
+      let current = "#overview";
+      for (const target of targets) {
+        if (target.el && target.el.getBoundingClientRect().top <= 170) {
+          current = target.href;
+        }
+      }
+      if (current !== activeRef.current) {
+        activeRef.current = current;
+        setActiveItem(current);
+      }
+
+      lastScrollY = y;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+
+    // Release the scripted hero entrance once it has fully played out so the
+    // navbar can slide in/out and the hero can settle into idle motion.
+    const idleTimer = setTimeout(() => {
+      body.classList.remove("hero-animate");
+      body.classList.add("hero-idle");
+    }, 6200);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(idleTimer);
+    };
+  }, []);
+
   return (
     <>
-      <header className="floating-navbar" aria-label="Main navigation">
+      <div className="scroll-progress" aria-hidden="true">
+        <div className="scroll-progress-inner" ref={progressRef} />
+      </div>
+
+      <header
+        className={`floating-navbar ${isScrolled ? "is-scrolled" : ""} ${isHidden ? "is-hidden" : ""}`}
+        aria-label="Main navigation"
+      >
         <button
           className="mobile-menu-toggle"
           onClick={() => setIsOpen(!isOpen)}
@@ -51,7 +134,7 @@ export function Navbar() {
               key={item.href}
               href={item.href}
               className={activeItem === item.href ? "is-active" : ""}
-              onClick={() => setActiveItem(item.href)}
+              onClick={() => handleNavClick(item.href)}
             >
               {item.label}
             </a>

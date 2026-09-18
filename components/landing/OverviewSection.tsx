@@ -8,6 +8,7 @@ export function OverviewSection() {
   const statsRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [participants, setParticipants] = useState(0);
   const [teams, setTeams] = useState(0);
 
@@ -93,10 +94,25 @@ export function OverviewSection() {
       <div className="overview-content">
         <h2 id="overview-title">Overview Of ADIKARA 2026</h2>
 
-        <div className="overview-video" role="img" aria-label="Adikara 2026 video preview">
-          <button className="play-button" type="button" aria-label="Play overview video">
-            <span aria-hidden="true" />
-          </button>
+        <div className="overview-video" aria-label="Adikara 2026 video preview">
+          {isPlayingVideo ? (
+            <iframe
+              className="overview-iframe"
+              src="https://www.youtube-nocookie.com/embed/JcN7Y3gKiOg?autoplay=1&rel=0&modestbranding=1&controls=0&playsinline=1"
+              title="ADIKARA 2026 Overview Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              className="play-button"
+              type="button"
+              aria-label="Play overview video"
+              onClick={() => setIsPlayingVideo(true)}
+            >
+              <span aria-hidden="true" />
+            </button>
+          )}
         </div>
 
         <div className="overview-stats" aria-label="Adikara 2025 statistics" ref={statsRef}>

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+const CURTAIN_COLUMNS = 2;
+const CURTAIN_ROWS = 5;
+const CURTAIN_CENTER = CURTAIN_COLUMNS / 2;
+
 export function CurtainIntro() {
   const [stage, setStage] = useState<"closed" | "opening" | "done">("closed");
 
@@ -14,6 +18,15 @@ export function CurtainIntro() {
     // Always scroll to top (Hero section) immediately on page load / refresh
     window.scrollTo(0, 0);
 
+    // Respect reduced-motion: skip the intro and entrance sequence entirely.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const skipTimer = setTimeout(() => {
+        setStage("done");
+        document.body.classList.add("hero-animate");
+      }, 0);
+      return () => clearTimeout(skipTimer);
+    }
+
     // Lock scrolling while curtain animation plays
     document.body.style.overflow = "hidden";
 
@@ -23,7 +36,7 @@ export function CurtainIntro() {
       document.body.classList.add("hero-animate");
     }, 500);
 
-    // Unmount curtain after it completely slides out
+    // Unmount curtain after it completely opens
     const timer2 = setTimeout(() => {
       setStage("done");
       document.body.style.overflow = "";
@@ -39,15 +52,42 @@ export function CurtainIntro() {
   if (stage === "done") return null;
 
   return (
-    <div className={`curtain-wrapper ${stage === "opening" ? "is-opening" : ""}`}>
-      {/* Left Red Curtain Panel */}
-      <div className="curtain-panel curtain-left">
-        <div className="curtain-texture" />
-      </div>
+    <div
+      className={`curtain-wrapper ${stage === "opening" ? "is-opening" : ""}`}
+      aria-hidden="true"
+    >
+      <div
+        className="curtain-grid"
+        style={
+          {
+            "--curtain-columns": CURTAIN_COLUMNS,
+            "--curtain-rows": CURTAIN_ROWS,
+          } as React.CSSProperties
+        }
+      >
+        {Array.from({ length: CURTAIN_COLUMNS * CURTAIN_ROWS }, (_, i) => {
+          const row = Math.floor(i / CURTAIN_COLUMNS);
+          const col = i % CURTAIN_COLUMNS;
+          const isLeft = col < CURTAIN_CENTER;
+          const distanceFromCenter = isLeft
+            ? CURTAIN_CENTER - 1 - col
+            : col - CURTAIN_CENTER;
 
-      {/* Right Red Curtain Panel */}
-      <div className="curtain-panel curtain-right">
-        <div className="curtain-texture" />
+          return (
+            <span
+              className="curtain-cell"
+              key={i}
+              style={
+                {
+                  "--cell-delay": `${(row + distanceFromCenter) * 0.1}s`,
+                  "--pull-x": isLeft ? "-101%" : "101%",
+                } as React.CSSProperties
+              }
+            >
+              <span className="curtain-cell-fill" />
+            </span>
+          );
+        })}
       </div>
     </div>
   );

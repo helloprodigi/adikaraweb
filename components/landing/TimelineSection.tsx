@@ -12,6 +12,53 @@ const timelineItems = [
   { title: "Awarding", date: "22 November 2026" },
 ];
 
+const TARGET_PRIZE = 100000000;
+
+const CONFETTI_COLORS = [
+  "#ed1c24",
+  "#ff4b57",
+  "#ffca28",
+  "#ff6818",
+  "#fff1a8",
+  "#ffffff",
+];
+
+type ConfettiPiece = {
+  id: number;
+  x: number;
+  yStart: number;
+  rise: number;
+  fall: number;
+  drift: number;
+  rot: number;
+  color: string;
+  width: number;
+  height: number;
+  delay: number;
+  duration: number;
+};
+
+function createConfetti(count: number): ConfettiPiece[] {
+  return Array.from({ length: count }, (_, i) => {
+    const spread = count > 1 ? i / (count - 1) : 0.5;
+
+    return {
+      id: i,
+      x: 12 + spread * 76 + (Math.random() - 0.5) * 5,
+      yStart: 42 + Math.random() * 20,
+      rise: -(28 + Math.random() * 52),
+      fall: 210 + Math.random() * 140,
+      drift: (Math.random() - 0.5) * 70,
+      rot: (Math.random() - 0.5) * 540,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      width: 6 + Math.random() * 3,
+      height: 9 + Math.random() * 4,
+      delay: Math.random() * 0.35,
+      duration: 2.3 + Math.random() * 0.8,
+    };
+  });
+}
+
 export function TimelineSection() {
   const prizeRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -19,6 +66,7 @@ export function TimelineSection() {
 
   const [hasPrizeStarted, setHasPrizeStarted] = useState(false);
   const [cashPrize, setCashPrize] = useState(0);
+  const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
 
   // IntersectionObserver for Prize Row
   useEffect(() => {
@@ -42,9 +90,13 @@ export function TimelineSection() {
   useEffect(() => {
     if (!hasPrizeStarted) return;
 
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
     const duration = 1600;
     const startTime = performance.now();
-    const targetPrize = 100000000;
+    const targetPrize = TARGET_PRIZE;
+    let confettiTimer: ReturnType<typeof setTimeout> | undefined;
 
     const animatePrize = (now: number) => {
       const elapsed = now - startTime;
@@ -57,10 +109,20 @@ export function TimelineSection() {
         requestAnimationFrame(animatePrize);
       } else {
         setCashPrize(targetPrize);
+
+        // Confetti burst on the prize capsule once the full amount is reached
+        if (!reducedMotion) {
+          setConfetti(createConfetti(48));
+          confettiTimer = setTimeout(() => setConfetti([]), 4200);
+        }
       }
     };
 
     requestAnimationFrame(animatePrize);
+
+    return () => {
+      if (confettiTimer) clearTimeout(confettiTimer);
+    };
   }, [hasPrizeStarted]);
 
   // Scroll-driven timeline line progress
@@ -112,7 +174,34 @@ export function TimelineSection() {
       <div className="timeline-content">
         <div className="prize-row" ref={prizeRef}>
           <span>Total cash prize pool</span>
-          <strong>Rp{cashPrize.toLocaleString("id-ID")}</strong>
+          <strong className={cashPrize >= TARGET_PRIZE ? "is-complete" : ""}>
+            Rp{cashPrize.toLocaleString("id-ID")}
+            {confetti.length > 0 && (
+              <span className="prize-confetti" aria-hidden="true">
+                {confetti.map((piece) => (
+                  <span
+                    key={piece.id}
+                    className="prize-confetti-piece"
+                    style={
+                      {
+                        "--x": `${piece.x}%`,
+                        "--y-start": `${piece.yStart}px`,
+                        "--rise": `${piece.rise}px`,
+                        "--fall": `${piece.fall}px`,
+                        "--drift": `${piece.drift}px`,
+                        "--rot": `${piece.rot}deg`,
+                        "--confetti-color": piece.color,
+                        "--confetti-w": `${piece.width}px`,
+                        "--confetti-h": `${piece.height}px`,
+                        "--delay": `${piece.delay}s`,
+                        "--duration": `${piece.duration}s`,
+                      } as React.CSSProperties
+                    }
+                  />
+                ))}
+              </span>
+            )}
+          </strong>
         </div>
 
         <h2 id="timeline-title">Event Timeline</h2>
