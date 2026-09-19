@@ -41,7 +41,7 @@ export function CategoriesSection() {
 
   const middleStart = categoryCards.length;
   const [activeIndex, setActiveIndex] = useState(middleStart);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isAnimating, setIsAnimating] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselWidth, setCarouselWidth] = useState(0);
@@ -58,7 +58,9 @@ export function CategoriesSection() {
     ? carouselWidth / 2 - cardWidth / 2 - activeIndex * (cardWidth + cardGap)
     : 0;
 
-  const handleTrackTransitionEnd = () => {
+  const handleTrackTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget || e.propertyName !== "transform") return;
+
     const middleEnd = categoryCards.length * 2 - 1;
 
     if (activeIndex > middleEnd) {

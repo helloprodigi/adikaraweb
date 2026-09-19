@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from "react";
 export function OverviewSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [participants, setParticipants] = useState(0);
   const [teams, setTeams] = useState(0);
 
@@ -69,15 +70,66 @@ export function OverviewSection() {
     requestAnimationFrame(animateCount);
   }, [hasStarted]);
 
-  // Autoplay the video once the overview reveal animation has finished.
+  // Autoplay on load. Start muted to pass browser policy, then unmute once
+  // the video is actually playing.
   useEffect(() => {
-    if (!isVisible) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    const revealDuration = 1100;
-    const timer = setTimeout(() => setIsPlayingVideo(true), revealDuration);
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    return () => clearTimeout(timer);
-  }, [isVisible]);
+    video.muted = true;
+
+    const tryPlay = () => {
+      const promise = video.play();
+      if (promise !== undefined) promise.catch(() => {});
+    };
+
+    const unmute = () => {
+      if (video.muted) {
+        video.muted = false;
+        setIsMuted(false);
+      }
+    };
+
+    const handlePlaying = () => {
+      setTimeout(unmute, 150);
+    };
+
+    const handleInteraction = () => {
+      unmute();
+      tryPlay();
+    };
+
+    video.addEventListener("playing", handlePlaying);
+    tryPlay();
+    window.addEventListener("pointerdown", handleInteraction, {
+      passive: true,
+      once: true,
+    });
+    window.addEventListener("keydown", handleInteraction, {
+      passive: true,
+      once: true,
+    });
+
+    return () => {
+      video.removeEventListener("playing", handlePlaying);
+      window.removeEventListener("pointerdown", handleInteraction);
+      window.removeEventListener("keydown", handleInteraction);
+    };
+  }, []);
+
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+    if (!video.muted) {
+      const promise = video.play();
+      if (promise !== undefined) promise.catch(() => {});
+    }
+  };
 
   return (
     <section
@@ -105,24 +157,43 @@ export function OverviewSection() {
         <h2 id="overview-title">Overview Of ADIKARA 2026</h2>
 
         <div className="overview-video" aria-label="Adikara 2026 video preview">
-          {isPlayingVideo ? (
-            <iframe
-              className="overview-iframe"
-              src="https://www.youtube-nocookie.com/embed/JcN7Y3gKiOg?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&playsinline=1"
-              title="ADIKARA 2026 Overview Video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <button
-              className="play-button"
-              type="button"
-              aria-label="Play overview video"
-              onClick={() => setIsPlayingVideo(true)}
+          <video
+            className="overview-iframe"
+            ref={videoRef}
+            src="/landing/adikaraTrailer.mp4"
+            muted
+            playsInline
+            loop
+            preload="metadata"
+            aria-label="ADIKARA 2026 Trailer"
+          />
+          <button
+            className={`overview-sound-toggle ${isMuted ? "is-muted" : ""}`}
+            type="button"
+            aria-label={isMuted ? "Unmute overview video" : "Mute overview video"}
+            onClick={toggleMute}
+          >
+            <svg
+              className="sound-icon sound-on"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
             >
-              <span aria-hidden="true" />
-            </button>
-          )}
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" />
+            </svg>
+            <svg
+              className="sound-icon sound-off"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3 3.88-3.88-1.42-1.42-3.88 3.88-3.88-3.88-1.42 1.42L13.17 12l-3.88 3.88 1.42 1.42 3.88-3.88 3.88 3.88 1.42-1.42L18.59 12z" />
+            </svg>
+          </button>
         </div>
 
         <div className="overview-stats" aria-label="Adikara 2025 statistics" ref={statsRef}>

@@ -411,9 +411,11 @@ a {
 }
 
 .overview-iframe {
+  background: #000;
   border: 0;
   height: 100%;
   inset: 0;
+  object-fit: cover;
   position: absolute;
   width: 100%;
 }
@@ -464,6 +466,42 @@ a {
   border-left: 24px solid white;
   border-top: 14px solid transparent;
   margin-left: 6px;
+}
+
+.overview-sound-toggle {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  height: 38px;
+  justify-content: center;
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  transition: background 160ms ease, transform 160ms ease;
+  width: 38px;
+  z-index: 1;
+}
+
+.overview-sound-toggle:hover,
+.overview-sound-toggle:focus-visible {
+  background: rgba(0, 0, 0, 0.75);
+  transform: scale(1.06);
+}
+
+.overview-sound-toggle .sound-icon {
+  display: none;
+}
+
+.overview-sound-toggle.is-muted .sound-on {
+  display: block;
+}
+
+.overview-sound-toggle:not(.is-muted) .sound-off {
+  display: block;
 }
 
 .overview-stats {
