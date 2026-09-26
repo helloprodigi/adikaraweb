@@ -132,6 +132,27 @@
   width: 72px;
 }
 
+.yearArrowBtn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  outline: none;
+  padding: 0;
+  transition: transform 180ms ease, opacity 180ms ease;
+  user-select: none;
+}
+
+.yearArrowBtn:hover {
+  transform: scale(1.1);
+}
+
+.yearArrowBtn:active {
+  transform: scale(0.95);
+}
+
 .yearArrowLeft {
   transform: scaleX(1);
 }

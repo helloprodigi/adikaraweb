@@ -196,7 +196,7 @@ export default function RankingsPage() {
                 <input
                   type="search"
                   name="id"
-                  placeholder="Masukkan NIM/Nama tim"
+                  placeholder="Masukkan NIM ketua"
                 />
               </label>
               <button type="submit">Cek Nilai</button>
