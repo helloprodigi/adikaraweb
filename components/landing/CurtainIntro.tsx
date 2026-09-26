@@ -6,50 +6,84 @@ const CURTAIN_COLUMNS = 2;
 const CURTAIN_ROWS = 5;
 const CURTAIN_CENTER = CURTAIN_COLUMNS / 2;
 
+type IntroStatus = "idle" | "playing" | "played";
+type IntroStage = "checking" | "closed" | "opening" | "done";
+
+let introStatus: IntroStatus = "idle";
+let activeLifecycle = 0;
+
 export function CurtainIntro() {
-  const [stage, setStage] = useState<"closed" | "opening" | "done">("closed");
+  const [stage, setStage] = useState<IntroStage>("checking");
 
   useEffect(() => {
-    // Force browser to not restore previous scroll position on refresh
-    if ("scrollRestoration" in window.history) {
+    const lifecycleId = ++activeLifecycle;
+
+    if (introStatus !== "idle") return;
+
+    introStatus = "playing";
+
+    const previousScrollRestoration =
+      "scrollRestoration" in window.history ? window.history.scrollRestoration : null;
+
+    if (previousScrollRestoration) {
       window.history.scrollRestoration = "manual";
     }
 
-    // Always scroll to top (Hero section) immediately on page load / refresh
+    const restoreScrollRestoration = () => {
+      if (previousScrollRestoration) {
+        window.history.scrollRestoration = previousScrollRestoration;
+      }
+    };
+
     window.scrollTo(0, 0);
 
-    // Respect reduced-motion: skip the intro and entrance sequence entirely.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       const skipTimer = setTimeout(() => {
+        introStatus = "played";
         setStage("done");
-        document.body.classList.add("hero-animate");
       }, 0);
-      return () => clearTimeout(skipTimer);
+      return () => {
+        clearTimeout(skipTimer);
+        restoreScrollRestoration();
+      };
     }
 
-    // Lock scrolling while curtain animation plays
+    const closedTimer = setTimeout(() => setStage("closed"), 0);
     document.body.style.overflow = "hidden";
 
-    // Hold closed for 500ms then start opening and trigger hero entrance animation
-    const timer1 = setTimeout(() => {
+    const openingTimer = setTimeout(() => {
       setStage("opening");
       document.body.classList.add("hero-animate");
     }, 500);
 
-    // Unmount curtain after it completely opens
-    const timer2 = setTimeout(() => {
+    const curtainTimer = setTimeout(() => {
       setStage("done");
       document.body.style.overflow = "";
+      restoreScrollRestoration();
     }, 3200);
 
+    const idleTimer = setTimeout(() => {
+      document.body.classList.remove("hero-animate");
+      document.body.classList.add("hero-idle");
+    }, 6200);
+
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      document.body.style.overflow = "";
+      queueMicrotask(() => {
+        if (activeLifecycle !== lifecycleId) return;
+
+        introStatus = "played";
+        clearTimeout(closedTimer);
+        clearTimeout(openingTimer);
+        clearTimeout(curtainTimer);
+        clearTimeout(idleTimer);
+        document.body.style.overflow = "";
+        document.body.classList.remove("hero-animate", "hero-idle");
+        restoreScrollRestoration();
+      });
     };
   }, []);
 
-  if (stage === "done") return null;
+  if (stage === "checking" || stage === "done") return null;
 
   return (
     <div

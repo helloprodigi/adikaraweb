@@ -1,35 +1,33 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const navigationItems = [
-  { label: "Overview", href: "#overview" },
-  { label: "Timeline", href: "#timeline" },
-  { label: "Competition", href: "#competition" },
-  { label: "Team", href: "#myprodigi" },
-  { label: "Guidebook", href: "#download-resource" },
+  { label: "Overview", href: "/" },
+  { label: "Statistics", href: "/statistics" },
+  { label: "Rankings", href: "/rankings" },
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState("#overview");
   const [isScrolled, setIsScrolled] = useState(false);
   const progressRef = useRef<HTMLDivElement>(null);
   const scrolledRef = useRef(false);
-  const activeRef = useRef("#overview");
 
-  const handleNavClick = (href: string) => {
-    setActiveItem(href);
+  const handleNavClick = () => {
     setIsOpen(false);
   };
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
+
+  useEffect(() => {
     const progressInner = progressRef.current;
-    const body = document.body;
-    const targets = navigationItems
-      .map((item) => ({ href: item.href, el: document.querySelector<HTMLElement>(item.href) }))
-      .filter((t) => t.el !== null);
 
     let ticking = false;
 
@@ -49,17 +47,6 @@ export function Navbar() {
         setIsScrolled(nextScrolled);
       }
 
-      let current = "#overview";
-      for (const target of targets) {
-        if (target.el && target.el.getBoundingClientRect().top <= 170) {
-          current = target.href;
-        }
-      }
-      if (current !== activeRef.current) {
-        activeRef.current = current;
-        setActiveItem(current);
-      }
-
       ticking = false;
     };
 
@@ -73,16 +60,8 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     update();
 
-    // Release the scripted hero entrance once it has fully played out so the
-    // navbar can slide in/out and the hero can settle into idle motion.
-    const idleTimer = setTimeout(() => {
-      body.classList.remove("hero-animate");
-      body.classList.add("hero-idle");
-    }, 6200);
-
     return () => {
       window.removeEventListener("scroll", onScroll);
-      clearTimeout(idleTimer);
     };
   }, []);
 
@@ -108,7 +87,7 @@ export function Navbar() {
           <span className={`hamburger-bar ${isOpen ? "is-open" : ""}`} />
         </button>
 
-        <a className="brand" href="#overview" aria-label="Adikara 2026 home">
+        <Link className="brand" href="/" aria-label="Adikara 2026 home">
           <Image
             src="/navbar/adikara-logo.svg"
             alt="Adikara Logo"
@@ -116,24 +95,24 @@ export function Navbar() {
             height={72}
             priority
           />
-        </a>
+        </Link>
 
         <nav className="nav-links">
           {navigationItems.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
-              className={activeItem === item.href ? "is-active" : ""}
-              onClick={() => handleNavClick(item.href)}
+              className={pathname === item.href ? "is-active" : ""}
+              onClick={handleNavClick}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        <a className="button button-small nav-register-btn" href="#register">
+        <Link className="button button-small nav-register-btn" href="/#register">
           Register Now
-        </a>
+        </Link>
       </header>
 
       {/* Mobile Sidebar Overlay */}
@@ -162,25 +141,26 @@ export function Navbar() {
         <div className="sidebar-body">
           <nav className="sidebar-links">
             {navigationItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setIsOpen(false)}
+                className={pathname === item.href ? "is-active" : ""}
+                onClick={handleNavClick}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>
 
         <div className="sidebar-footer">
-          <a
+          <Link
             className="button button-small sidebar-register-btn"
-            href="#register"
-            onClick={() => setIsOpen(false)}
+            href="/#register"
+            onClick={handleNavClick}
           >
             Register Now
-          </a>
+          </Link>
         </div>
       </aside>
     </>
