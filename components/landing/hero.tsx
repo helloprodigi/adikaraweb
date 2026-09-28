@@ -78,6 +78,10 @@ export function Hero() {
         <h1 id="hero-title">
           ADIKARA <span>2026</span>
         </h1>
+        <p className="hero-subtitle">
+          Informatics Students&apos; Digital Creative and Innovation Competition by
+          Telkom University
+        </p>
         <a className="button button-hero" href="#register">
           Register Now
         </a>

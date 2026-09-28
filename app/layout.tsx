@@ -14,8 +14,47 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ADIKARA 2026",
-  description: "ADIKARA 2026 - Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+  metadataBase: new URL("https://adikara.helloprodigi.pro"),
+  title: {
+    default: "ADIKARA 2026 - Telkom University",
+    template: "%s | ADIKARA 2026",
+  },
+  description:
+    "ADIKARA 2026 - Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+  keywords: [
+    "adikara",
+    "adikara 2026",
+    "adikara telkom university",
+    "digital creative innovation competition",
+    "kompetisi mahasiswa telkom",
+    "adikara statistics",
+    "adikara finalists",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "ADIKARA 2026",
+    title: "ADIKARA 2026 - Telkom University",
+    description:
+      "Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ADIKARA 2026 - Telkom University",
+    description:
+      "Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -263,6 +263,14 @@ a {
   margin-top: 5px;
 }
 
+.hero-subtitle {
+  color: #5c6073;
+  font-size: clamp(15px, 1.6vw, 18px);
+  line-height: 1.4;
+  margin: -12px auto 28px;
+  max-width: 620px;
+}
+
 .button-hero {
   font-size: 15px;
   height: 49px;

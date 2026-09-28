@@ -181,6 +181,7 @@ export function TeamScore() {
               <div>
                 <h1 id="team-score-title">Mas Asix</h1>
                 <p>Innovation</p>
+                <p className={styles.teamMeta}>Tim Mas Asix - Finalis ADIKARA 2026</p>
               </div>
               <div className={styles.finalScore}>
                 <span>Final Score</span>

@@ -173,6 +173,13 @@
   margin: 0;
 }
 
+.teamMeta {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
 .finalScore {
   text-align: right;
 }
