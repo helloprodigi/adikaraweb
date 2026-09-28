@@ -96,12 +96,7 @@ function AnimatedCriterionRow({
       </div>
       <div className={styles.feedback}>
         <span>JURY FEEDBACK</span>
-        <p>
-          {typedFeedback}
-          {isStarted && typedFeedback.length < fullFeedback.length && (
-            <span className={styles.cursor}>|</span>
-          )}
-        </p>
+        <p>{typedFeedback}</p>
       </div>
     </article>
   );

@@ -6,12 +6,14 @@
   --adikara-red: #c9070f;
   --adikara-dark-red: #a90009;
   --pattern-pink: #f9dfe1;
+  --font-family-sans: var(--font-google-sans), "Google Sans", "Product Sans", Arial,
+    sans-serif;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Google Sans", "Product Sans", Arial, sans-serif;
+  --font-sans: var(--font-family-sans);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -34,7 +36,7 @@ body {
   overflow-y: hidden;
   background: var(--background);
   color: var(--foreground);
-  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
+  font-family: var(--font-family-sans);
 }
 
 a {
@@ -55,7 +57,7 @@ a {
   border-radius: 999px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   display: flex;
-  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
+  font-family: var(--font-family-sans);
   gap: 32px;
   justify-content: space-between;
   left: 50%;
@@ -125,7 +127,7 @@ a {
 }
 
 .nav-links a {
-  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
+  font-family: var(--font-family-sans);
   font-size: 15px;
   font-weight: 500;
   position: relative;
@@ -167,7 +169,7 @@ a {
   box-shadow: 0 4px 14px -6px rgba(201, 7, 15, 0.4);
   color: white;
   display: inline-flex;
-  font-family: "Google Sans", "Product Sans", Arial, sans-serif;
+  font-family: var(--font-family-sans);
   font-weight: 600;
   justify-content: center;
   position: relative;
@@ -1611,6 +1613,29 @@ a {
   .sidebar-links a:hover,
   .sidebar-links a:active {
     color: var(--adikara-red);
+  }
+
+  .sidebar-links a.is-active {
+    background: linear-gradient(90deg, #ed1c24, #ffca28);
+    background-clip: text;
+    color: transparent;
+    position: relative;
+  }
+
+  .sidebar-links a.is-active::after {
+    background: linear-gradient(90deg, #ed1c24, #ffca28);
+    border-radius: 2px;
+    bottom: 6px;
+    content: "";
+    height: 2px;
+    left: 16px;
+    position: absolute;
+    right: 16px;
+  }
+
+  .sidebar-links a.is-active:hover,
+  .sidebar-links a.is-active:active {
+    color: transparent;
   }
 
   .mobile-sidebar.is-open .sidebar-links a {

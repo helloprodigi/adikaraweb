@@ -7,7 +7,7 @@
 .page {
   background-color: #fff;
   color: #10142b;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family-sans);
   overflow-x: clip;
   position: relative;
   width: 100%;
@@ -644,18 +644,22 @@
   }
 
   .sideWing {
-    max-width: min(42vw, 190px);
-    opacity: 1;
-    top: 100px;
-    width: 42vw;
+    max-width: min(34vw, 150px);
+    opacity: 0.55;
+    top: 96px;
+    width: 34vw;
   }
 
   .leftWing {
-    left: -10px;
+    left: -72px;
   }
 
   .rightWing {
-    right: -10px;
+    right: -72px;
+  }
+
+  .heroContent {
+    padding-inline: 10px;
   }
 
   .heroContent h1 {
@@ -783,17 +787,145 @@
     width: 170px;
   }
 
-.donut:hover {
-  transform: scale(1.08);
-}
-
-.donut::before {
-    inset: 30px;
+  .donut:hover {
+    transform: scale(1.08);
   }
 
   .detailRow {
     gap: 8px;
     grid-template-columns: 100px minmax(80px, 1fr) 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero {
+    min-height: 440px;
+    padding: 124px 16px 50px;
+  }
+
+  .sideWing {
+    max-width: min(30vw, 120px);
+    opacity: 0.45;
+    top: 88px;
+    width: 30vw;
+  }
+
+  .leftWing {
+    left: -60px;
+  }
+
+  .rightWing {
+    right: -60px;
+  }
+
+  .heroContent {
+    padding-inline: 8px;
+  }
+
+  .heroContent h1 {
+    font-size: 28px;
+    letter-spacing: -0.8px;
+  }
+
+  .eyebrow {
+    font-size: 18px;
+  }
+
+  .yearSelector {
+    gap: 8px;
+    margin-top: 24px;
+  }
+
+  .yearSelector img {
+    height: 44px;
+    width: 56px;
+  }
+
+  .yearSelector span {
+    font-size: 14px;
+    height: 38px;
+    min-width: 88px;
+  }
+
+  .summarySection,
+  .contentSection {
+    padding-inline: 12px;
+  }
+
+  .summarySection {
+    margin-top: 32px;
+  }
+
+  .summaryCard {
+    min-height: 92px;
+    padding: 12px 10px;
+  }
+
+  .summaryCard p {
+    font-size: 8px;
+  }
+
+  .summaryCard strong {
+    font-size: 26px;
+  }
+
+  .summaryCard span {
+    font-size: 10px;
+  }
+
+  .contentSection > h2 {
+    font-size: 25px;
+    margin-bottom: 22px;
+    padding-top: 10px;
+  }
+
+  .chartCard,
+  .detailCard {
+    padding: 16px 12px;
+  }
+
+  .cardHeadingRow h3,
+  .detailCard h3 {
+    font-size: 16px;
+  }
+
+  .barRow {
+    gap: 6px;
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .barLabel {
+    font-size: 8px;
+  }
+
+  .axis {
+    left: 68px;
+  }
+
+  .donut {
+    height: 150px;
+    width: 150px;
+  }
+
+  .donut strong {
+    font-size: 23px;
+  }
+
+  .genderLegend > div {
+    grid-template-columns: 10px 1fr 32px 34px;
+  }
+
+  .detailHeader {
+    font-size: 10px;
+    padding: 10px;
+  }
+
+  .detailRow {
+    grid-template-columns: 78px minmax(60px, 1fr) 28px;
+  }
+
+  .detailRow strong {
+    font-size: 14px;
   }
 }
 
