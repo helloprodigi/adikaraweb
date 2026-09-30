@@ -263,14 +263,6 @@ a {
   margin-top: 5px;
 }
 
-.hero-subtitle {
-  color: #5c6073;
-  font-size: clamp(15px, 1.6vw, 18px);
-  line-height: 1.4;
-  margin: -12px auto 28px;
-  max-width: 620px;
-}
-
 .button-hero {
   font-size: 15px;
   height: 49px;
@@ -765,14 +757,38 @@ a {
   z-index: 1;
 }
 
-.timeline-item.is-reached .timeline-node {
+.timeline-item.phase-done .timeline-node {
   background: linear-gradient(145deg, #f21c1c, #ffb719);
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.2), 0 0 12px rgba(237, 28, 36, 0.5);
   transform: scale(1.15);
 }
 
-.timeline-item.is-reached .timeline-node::after {
+.timeline-item.phase-done h3 {
+  color: #10142b;
+}
+
+.timeline-item.phase-done p {
+  color: #666;
+}
+
+.timeline-item.phase-current .timeline-node {
+  background: linear-gradient(145deg, #f21c1c, #ffb719);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.2), 0 0 12px rgba(237, 28, 36, 0.5);
+  transform: scale(1.15);
+}
+
+.timeline-item.phase-current h3 {
+  color: #10142b;
+  animation: timelineTitleBreathe 2.6s ease-in-out infinite;
+}
+
+.timeline-item.phase-current p {
+  color: #666;
+}
+
+.timeline-item.phase-done .timeline-node::after {
   animation: nodeReachedRing 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   border: 2px solid rgba(237, 28, 36, 0.4);
   border-radius: 50%;
@@ -804,6 +820,112 @@ a {
   color: #777;
   font-size: 11px;
   margin: 0 auto;
+}
+
+/* Registration = current stage, mark it with a heartbeat pulse */
+.timeline-item.is-current .timeline-node {
+  animation: timelineNodeGlow 1.8s ease-in-out infinite;
+}
+
+/* Rings sit exactly on the node in both layouts (desktop centered,
+   mobile offset left to follow the vertical rail) */
+.timeline-node-ring {
+  border: 1.5px solid rgba(237, 28, 36, 0.6);
+  border-radius: 50%;
+  height: 32px;
+  left: 50%;
+  margin-left: -16px;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 32px;
+  z-index: 0;
+}
+
+/* Only the current phase pulses: two outline rings expand outward
+   one after the other. */
+.timeline-item.is-current .timeline-node-ring {
+  animation: timelineRingPulse 2.4s ease-out infinite;
+}
+
+.timeline-item.is-current .timeline-node-ring-late {
+  animation-delay: 1.2s;
+}
+
+@keyframes timelineRingPulse {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  12% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Soft halo bleeding off the node */
+.timeline-item.is-current .timeline-node::before {
+  animation: timelineNodeHalo 1.8s ease-in-out infinite;
+  background: radial-gradient(
+    circle,
+    rgba(237, 28, 36, 0.35),
+    rgba(237, 28, 36, 0)
+  );
+  border-radius: 50%;
+  content: "";
+  inset: -10px;
+  position: absolute;
+}
+
+@keyframes timelineNodeHalo {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes timelineNodeGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(237, 28, 36, 0.16),
+      0 0 10px rgba(237, 28, 36, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 3.5px rgba(237, 28, 36, 0.26),
+      0 0 16px rgba(237, 28, 36, 0.6);
+  }
+}
+
+.timeline-title-active {
+  animation: timelineTitleBreathe 2.6s ease-in-out infinite;
+}
+
+@keyframes timelineTitleBreathe {
+  0%, 100% {
+    color: #10142b;
+  }
+  50% {
+    color: #ed1c24;
+  }
+}
+
+/* Upcoming phases stay muted until their date arrives */
+.timeline-item.phase-upcoming .timeline-node {
+  background: #ffffff;
+  border-color: #ddd;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.timeline-item.phase-upcoming h3,
+.timeline-item.phase-upcoming p {
+  color: #b4b6bd;
 }
 
 .timeline-decor {
@@ -1899,6 +2021,14 @@ a {
     width: 30px;
   }
 
+  .timeline-node-ring {
+    height: 30px;
+    left: -48px;
+    margin-left: 0;
+    top: -2px;
+    width: 30px;
+  }
+
   .timeline-item h3 {
     color: #10142b;
     font-size: 17px;
@@ -2204,12 +2334,12 @@ body.hero-animate .floating-navbar {
 }
 
 body.hero-animate .hero-decor-left {
-  animation: decorMergeLeftDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatLeft 4.5s ease-in-out 3s infinite;
+  animation: decorMergeLeftDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatLeft 4.5s ease-in-out 3.4s infinite;
   opacity: 0;
 }
 
 body.hero-animate .hero-decor-right {
-  animation: decorMergeRightDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatRight 4.5s ease-in-out 3s infinite;
+  animation: decorMergeRightDesktop 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards, wingFloatRight 4.5s ease-in-out 3.4s infinite;
   opacity: 0;
 }
 
@@ -2389,11 +2519,11 @@ body.hero-animate .button-hero {
    Hero Idle Motion (after the entrance sequence finishes)
    ========================================================================== */
 body.hero-idle .hero-decor-left {
-  animation: wingFloatLeft 5.5s ease-in-out infinite;
+  animation: wingFloatLeft 4.5s ease-in-out 0.4s infinite;
 }
 
 body.hero-idle .hero-decor-right {
-  animation: wingFloatRight 5.5s ease-in-out infinite;
+  animation: wingFloatRight 4.5s ease-in-out 0.4s infinite;
 }
 
 /* ==========================================================================

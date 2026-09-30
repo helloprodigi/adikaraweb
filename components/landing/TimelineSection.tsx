@@ -4,13 +4,58 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 const timelineItems = [
-  { title: "Registration", date: "Date To Be Announced" },
-  { title: "Kick Off", date: "5 October 2026" },
-  { title: "Mentoring", date: "November 2026" },
-  { title: "Qualifying Round", date: "1 - 21 November 2026" },
-  { title: "Finals", date: "November 2026" },
-  { title: "Awarding", date: "22 November 2026" },
+  { title: "Kick Off", date: "5 Oktober 2026", start: "2026-10-05", end: "2026-10-05" },
+  {
+    title: "Pendaftaran",
+    date: "5 Oktober - 31 Oktober 2026",
+    start: "2026-10-05",
+    end: "2026-10-31",
+  },
+  {
+    title: "Penjurian",
+    date: "1 November - 9 November 2026",
+    start: "2026-11-01",
+    end: "2026-11-09",
+  },
+  {
+    title: "Pengumuman Finalis",
+    date: "11 November 2026",
+    start: "2026-11-11",
+    end: "2026-11-11",
+  },
+  {
+    title: "Final",
+    date: "16 - 20 November 2026",
+    start: "2026-11-16",
+    end: "2026-11-20",
+  },
+  {
+    title: "Awarding",
+    date: "22 November 2026",
+    start: "2026-11-22",
+    end: "2026-11-22",
+  },
 ];
+
+type PhaseStatus = "done" | "current" | "upcoming";
+
+function getPhaseStatus(
+  item: { start: string; end: string },
+  now: Date
+): PhaseStatus {
+  const today = Date.UTC(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+  const start = Date.parse(`${item.start}T00:00:00Z`);
+  const end = Date.parse(`${item.end}T23:59:59Z`);
+
+  if (Number.isNaN(start) || Number.isNaN(end)) return "upcoming";
+  if (today > end) return "done";
+  if (today >= start) return "current";
+  return "upcoming";
+}
 
 const TARGET_PRIZE = 100000000;
 
@@ -67,6 +112,15 @@ export function TimelineSection() {
   const [hasPrizeStarted, setHasPrizeStarted] = useState(false);
   const [cashPrize, setCashPrize] = useState(0);
   const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
+  const [now, setNow] = useState<Date | null>(null);
+
+  // Resolve "today" on the client so server and client markup match
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    tick();
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // IntersectionObserver for Prize Row
   useEffect(() => {
@@ -220,13 +274,28 @@ export function TimelineSection() {
           {timelineItems.map((item, index) => {
             const itemThreshold = index / (timelineItems.length - 1);
             const isReached = lineProgress >= itemThreshold;
+            const status: PhaseStatus = now
+              ? getPhaseStatus(item, now)
+              : "upcoming";
+            const isCurrent = status === "current";
 
             return (
               <div
-                className={`timeline-item ${isReached ? "is-reached" : ""}`}
+                className={`timeline-item ${
+                  isReached ? "is-reached" : ""
+                } ${isCurrent ? "is-current" : ""} phase-${status}`}
                 key={item.title}
               >
                 <span className="timeline-node" aria-hidden="true" />
+                {isCurrent && (
+                  <>
+                    <span className="timeline-node-ring" aria-hidden="true" />
+                    <span
+                      className="timeline-node-ring timeline-node-ring-late"
+                      aria-hidden="true"
+                    />
+                  </>
+                )}
                 <h3>{item.title}</h3>
                 <p>{item.date}</p>
               </div>

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | ADIKARA 2026",
   },
   description:
-    "ADIKARA 2026 - Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+    "ADIKARA (Ajang Digital Kreatif dan Inovasi Informatika) is a competition organized by the Faculty of Informatics at Telkom University. It aims to develop technical skills, creativity, and an entrepreneurial spirit through a variety of challenging and innovative competitions.",
   keywords: [
     "adikara",
     "adikara 2026",
@@ -37,13 +37,13 @@ export const metadata: Metadata = {
     siteName: "ADIKARA 2026",
     title: "ADIKARA 2026 - Telkom University",
     description:
-      "Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+      "ADIKARA (Ajang Digital Kreatif dan Inovasi Informatika) is a competition organized by the Faculty of Informatics at Telkom University. It aims to develop technical skills, creativity, and an entrepreneurial spirit through a variety of challenging and innovative competitions.",
   },
   twitter: {
     card: "summary_large_image",
     title: "ADIKARA 2026 - Telkom University",
     description:
-      "Informatics Students' Digital Creative and Innovation Competition by Telkom University.",
+      "ADIKARA (Ajang Digital Kreatif dan Inovasi Informatika) is a competition organized by the Faculty of Informatics at Telkom University. It aims to develop technical skills, creativity, and an entrepreneurial spirit through a variety of challenging and innovative competitions.",
   },
   robots: {
     index: true,

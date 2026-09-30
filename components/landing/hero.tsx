@@ -38,16 +38,16 @@ export function Hero() {
         className="hero-decor hero-decor-left"
         src="/landing/hero/hero-decor.svg"
         alt=""
-        width={450}
-        height={440}
+        width={448}
+        height={590}
         priority
       />
       <Image
         className="hero-decor hero-decor-right"
         src="/landing/hero/hero-decor.svg"
         alt=""
-        width={450}
-        height={440}
+        width={448}
+        height={590}
         priority
       />
 
@@ -78,10 +78,6 @@ export function Hero() {
         <h1 id="hero-title">
           ADIKARA <span>2026</span>
         </h1>
-        <p className="hero-subtitle">
-          Informatics Students&apos; Digital Creative and Innovation Competition by
-          Telkom University
-        </p>
         <a className="button button-hero" href="#register">
           Register Now
         </a>
