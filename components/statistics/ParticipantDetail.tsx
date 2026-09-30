@@ -4,27 +4,32 @@ import { useEffect, useState } from "react";
 import { useReveal } from "./useReveal";
 import styles from "./statistics.module.css";
 
+// Data belum tersedia, tampilkan placeholder sampai API statistics siap
+const PLACEHOLDER = "???";
+
 const batchStats = [
-  { label: "2026", value: 381 },
-  { label: "2025", value: 143 },
-  { label: "2024", value: 110 },
-  { label: "2023", value: 10 },
+  { label: "2026", value: null },
+  { label: "2025", value: null },
+  { label: "2024", value: null },
+  { label: "2023", value: null },
 ];
 
 const studyProgramStats = [
-  { label: "S1 Informatics", value: 381 },
-  { label: "S1 Data Science", value: 143 },
-  { label: "S1 Software Engineering", value: 110 },
-  { label: "S1 Information Technology", value: 10 },
+  { label: "S1 Informatics", value: null },
+  { label: "S1 Data Science", value: null },
+  { label: "S1 Software Engineering", value: null },
+  { label: "S1 Information Technology", value: null },
 ];
 
 const detailMax = 400;
 
+type DetailItem = { label: string; value: number | null };
+
 type DetailCardProps = {
   title: string;
   firstColumn: string;
-  items: { label: string; value: number }[];
-  animatedValues: number[];
+  items: DetailItem[];
+  animatedValues: (number | null)[];
 };
 
 function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardProps) {
@@ -40,9 +45,20 @@ function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardPro
           <div className={styles.detailRow} key={item.label}>
             <span>{item.label}</span>
             <div>
-              <i style={{ width: `${(item.value / detailMax) * 100}%` }} />
+              <i
+                style={{
+                  width:
+                    item.value === null
+                      ? "0%"
+                      : `${(item.value / detailMax) * 100}%`,
+                }}
+              />
             </div>
-            <strong>{animatedValues[index]}</strong>
+            <strong>
+              {animatedValues[index] === null || animatedValues[index] === undefined
+                ? PLACEHOLDER
+                : animatedValues[index]}
+            </strong>
           </div>
         ))}
       </div>
@@ -52,12 +68,26 @@ function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardPro
 
 export function ParticipantDetail() {
   const { ref, isVisible } = useReveal<HTMLElement>();
-  const [animatedValues, setAnimatedValues] = useState([0, 0, 0, 0, 0, 0, 0, 0]);
+  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>([
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+  ]);
 
   useEffect(() => {
     if (!isVisible) return;
 
-    const targets = [...batchStats.map((item) => item.value), ...studyProgramStats.map((item) => item.value)];
+    const targets = [...batchStats, ...studyProgramStats].map(
+      (item) => item.value
+    );
+    // Lewati animasi count-up kalau datanya belum ada
+    if (targets.every((target) => target === null)) return;
+
     const startTime = performance.now() + 300;
     const duration = 1400;
     let animationFrame = 0;
@@ -71,7 +101,11 @@ export function ParticipantDetail() {
         return;
       }
 
-      setAnimatedValues(targets.map((target) => Math.floor(target * easedProgress)));
+      setAnimatedValues(
+        targets.map((target) =>
+          target === null ? null : Math.floor(target * easedProgress)
+        )
+      );
       animationFrame = requestAnimationFrame(animate);
     };
 

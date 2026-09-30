@@ -4,23 +4,38 @@ import type { CSSProperties } from "react";
 import { useReveal } from "./useReveal";
 import styles from "./statistics.module.css";
 
+// Data belum tersedia, tampilkan placeholder sampai API statistics siap
+const PLACEHOLDER = "???";
+
 const categoryStats = [
-  { name: "Innovations", registrations: 142, participants: 406 },
-  { name: "Competitive Programming", registrations: 158, participants: 158 },
-  { name: "Cyber Security", registrations: 137, participants: 137 },
-  { name: "Entrepreneurship", registrations: 118, participants: 272 },
-  { name: "Data Mining", registrations: 69, participants: 173 },
+  { name: "Innovations", registrations: null, participants: null },
+  { name: "Competitive Programming", registrations: null, participants: null },
+  { name: "Cyber Security", registrations: null, participants: null },
+  { name: "Entrepreneurship", registrations: null, participants: null },
+  { name: "Data Mining", registrations: null, participants: null },
 ];
 
-const genderStats = { male: 927, female: 218 };
-const axisValues = [0, 100, 200, 300, 400, 500];
-const chartMax = Math.max(
-  axisValues.at(-1) ?? 0,
-  ...categoryStats.flatMap((category) => [category.registrations, category.participants])
-);
-const genderTotal = genderStats.male + genderStats.female;
-const maleShare = (genderStats.male / genderTotal) * 100;
-const barWidth = (value: number) => `${Math.min((value / chartMax) * 100, 100)}%`;
+const genderStats: { male: number | null; female: number | null } = {
+  male: null,
+  female: null,
+};
+
+const axisValues: number[] = [];
+const chartMax: number | null = null;
+const genderTotal =
+  genderStats.male === null || genderStats.female === null
+    ? null
+    : genderStats.male + genderStats.female;
+const maleShare =
+  genderTotal === null || genderTotal === 0
+    ? 50
+    : (genderStats.male! / genderTotal) * 100;
+const barWidth = (value: number | null) =>
+  value === null || chartMax === null || chartMax === 0
+    ? "0%"
+    : `${Math.min((value / chartMax) * 100, 100)}%`;
+const formatValue = (value: number | null) =>
+  value === null ? PLACEHOLDER : value.toLocaleString("en-US");
 
 export function RegistDistribution() {
   const { ref, isVisible } = useReveal<HTMLElement>();
@@ -52,13 +67,13 @@ export function RegistDistribution() {
                     className={`${styles.bar} ${styles.registrationBar}`}
                     style={{ width: barWidth(category.registrations) }}
                   >
-                    <span>{category.registrations}</span>
+                    <span>{formatValue(category.registrations)}</span>
                   </div>
                   <div
                     className={`${styles.bar} ${styles.participantBar}`}
                     style={{ width: barWidth(category.participants) }}
                   >
-                    <span>{category.participants}</span>
+                    <span>{formatValue(category.participants)}</span>
                   </div>
                 </div>
               </div>
@@ -74,17 +89,23 @@ export function RegistDistribution() {
           <div
             className={styles.donut}
             role="img"
-            aria-label={`${genderTotal.toLocaleString("en-US")} participants: ${genderStats.male} male and ${genderStats.female} female`}
+            aria-label={
+              genderTotal === null
+                ? "Data peserta belum tersedia"
+                : `${genderTotal.toLocaleString("en-US")} participants: ${genderStats.male} male and ${genderStats.female} female`
+            }
             style={{ "--male-share": `${maleShare}%` } as CSSProperties}
           >
             <div>
-              <strong>{genderTotal.toLocaleString("en-US")}</strong>
+              <strong>
+                {genderTotal === null ? PLACEHOLDER : genderTotal.toLocaleString("en-US")}
+              </strong>
               <span>participant</span>
             </div>
           </div>
           <div className={styles.genderLegend}>
-              <div><i className={styles.maleDot} /><span>Male</span><b>{Math.round(maleShare)}%</b><b>{genderStats.male}</b></div>
-              <div><i className={styles.femaleDot} /><span>Female</span><b>{100 - Math.round(maleShare)}%</b><b>{genderStats.female}</b></div>
+              <div><i className={styles.maleDot} /><span>Male</span><b>{genderTotal === null ? PLACEHOLDER : `${Math.round(maleShare)}%`}</b><b>{formatValue(genderStats.male)}</b></div>
+              <div><i className={styles.femaleDot} /><span>Female</span><b>{genderTotal === null ? PLACEHOLDER : `${100 - Math.round(maleShare)}%`}</b><b>{formatValue(genderStats.female)}</b></div>
           </div>
         </section>
       </div>

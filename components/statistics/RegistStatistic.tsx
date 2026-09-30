@@ -6,31 +6,45 @@ import styles from "./statistics.module.css";
 
 const YEARS = [2024, 2025, 2026];
 
-const yearStatsData: Record<number, Array<{ label: string; value: number; featured?: boolean }>> = {
+// Data belum tersedia, tampilkan placeholder sampai API statistics siap
+const PLACEHOLDER = "???";
+
+type SummaryStat = {
+  label: string;
+  value: number | null;
+  featured?: boolean;
+};
+
+const yearStatsData: Record<number, SummaryStat[]> = {
   2024: [
-    { label: "Total Registrations", value: 512 },
-    { label: "Individual Registrations", value: 512 },
-    { label: "Team Registrations", value: 512 },
-    { label: "Estimated Participants", value: 890, featured: true },
+    { label: "Total Registrations", value: null },
+    { label: "Individual Registrations", value: null },
+    { label: "Team Registrations", value: null },
+    { label: "Estimated Participants", value: null, featured: true },
   ],
   2025: [
-    { label: "Total Registrations", value: 676 },
-    { label: "Individual Registrations", value: 676 },
-    { label: "Team Registrations", value: 676 },
-    { label: "Estimated Participants", value: 1145, featured: true },
+    { label: "Total Registrations", value: null },
+    { label: "Individual Registrations", value: null },
+    { label: "Team Registrations", value: null },
+    { label: "Estimated Participants", value: null, featured: true },
   ],
   2026: [
-    { label: "Total Registrations", value: 840 },
-    { label: "Individual Registrations", value: 840 },
-    { label: "Team Registrations", value: 840 },
-    { label: "Estimated Participants", value: 1420, featured: true },
+    { label: "Total Registrations", value: null },
+    { label: "Individual Registrations", value: null },
+    { label: "Team Registrations", value: null },
+    { label: "Estimated Participants", value: null, featured: true },
   ],
 };
 
 export function RegistStatistic() {
   const heroRef = useRef<HTMLElement>(null);
   const [yearIndex, setYearIndex] = useState(1); // 2025 is default index
-  const [animatedValues, setAnimatedValues] = useState([0, 0, 0, 0]);
+  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>([
+    null,
+    null,
+    null,
+    null,
+  ]);
   const [isHeroVisible, setIsHeroVisible] = useState(false);
 
   const activeYear = YEARS[yearIndex];
@@ -65,10 +79,13 @@ export function RegistStatistic() {
   useEffect(() => {
     if (!isHeroVisible) return;
 
+    // Lewati animasi count-up kalau datanya belum ada
+    const targets = currentSummaryStats.map((stat) => stat.value);
+    if (targets.every((target) => target === null)) return;
+
     let animationFrame = 0;
     const startTime = performance.now();
     const duration = 1200;
-    const targets = currentSummaryStats.map((stat) => stat.value);
 
     const animate = (now: number) => {
       const progress = Math.max(0, Math.min((now - startTime) / duration, 1));
@@ -79,7 +96,11 @@ export function RegistStatistic() {
         return;
       }
 
-      setAnimatedValues(targets.map((target) => Math.floor(target * easedProgress)));
+      setAnimatedValues(
+        targets.map((target) =>
+          target === null ? null : Math.floor(target * easedProgress)
+        )
+      );
       animationFrame = requestAnimationFrame(animate);
     };
 
@@ -156,7 +177,11 @@ export function RegistStatistic() {
               key={stat.label}
             >
               <p>{stat.label}</p>
-              <strong>{animatedValues[index].toLocaleString("en-US")}</strong>
+              <strong>
+                {animatedValues[index] === null || animatedValues[index] === undefined
+                  ? PLACEHOLDER
+                  : animatedValues[index]!.toLocaleString("en-US")}
+              </strong>
               <span>Individuals and Teams</span>
             </article>
           ))}
