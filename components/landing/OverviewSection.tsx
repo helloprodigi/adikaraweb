@@ -2,14 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-
-export function OverviewSection() {
+import { GalleryMarquee } from "./GalleryMarquee";
+export function OverviewSection({ galleryImages }: { galleryImages: string[] }) {
   const sectionRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
   const [participants, setParticipants] = useState(0);
   const [teams, setTeams] = useState(0);
 
@@ -70,68 +68,7 @@ export function OverviewSection() {
     requestAnimationFrame(animateCount);
   }, [hasStarted]);
 
-  // Autoplay on load. Start muted to pass browser policy, then unmute once
-  // the video is actually playing.
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    video.muted = true;
-
-    const tryPlay = () => {
-      const promise = video.play();
-      if (promise !== undefined) promise.catch(() => {});
-    };
-
-    const unmute = () => {
-      if (video.muted) {
-        video.muted = false;
-        setIsMuted(false);
-      }
-    };
-
-    const handlePlaying = () => {
-      setTimeout(unmute, 150);
-    };
-
-    const handleInteraction = () => {
-      unmute();
-      tryPlay();
-    };
-
-    video.addEventListener("playing", handlePlaying);
-    tryPlay();
-    window.addEventListener("pointerdown", handleInteraction, {
-      passive: true,
-      once: true,
-    });
-    window.addEventListener("keydown", handleInteraction, {
-      passive: true,
-      once: true,
-    });
-
-    return () => {
-      video.removeEventListener("playing", handlePlaying);
-      window.removeEventListener("pointerdown", handleInteraction);
-      window.removeEventListener("keydown", handleInteraction);
-    };
-  }, []);
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.muted = !video.muted;
-    setIsMuted(video.muted);
-    if (!video.muted) {
-      const promise = video.play();
-      if (promise !== undefined) promise.catch(() => {});
-    }
-  };
-
-  return (
+return (
     <section
       className={`overview-section ${isVisible ? "is-visible" : ""}`}
       id="overview-details"
@@ -154,46 +91,10 @@ export function OverviewSection() {
       />
 
       <div className="overview-content">
-        <h2 id="overview-title">Overview Of ADIKARA 2026</h2>
+        <h2 id="overview-title">Overview Of ADIKARA</h2>
 
-        <div className="overview-video" aria-label="Adikara 2026 video preview">
-          <video
-            className="overview-iframe"
-            ref={videoRef}
-            src="/landing/adikaraTrailer.mp4"
-            muted
-            playsInline
-            loop
-            preload="metadata"
-            aria-label="ADIKARA 2026 Trailer"
-          />
-          <button
-            className={`overview-sound-toggle ${isMuted ? "is-muted" : ""}`}
-            type="button"
-            aria-label={isMuted ? "Unmute overview video" : "Mute overview video"}
-            onClick={toggleMute}
-          >
-            <svg
-              className="sound-icon sound-on"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z" />
-            </svg>
-            <svg
-              className="sound-icon sound-off"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.59 3 3.88-3.88-1.42-1.42-3.88 3.88-3.88-3.88-1.42 1.42L13.17 12l-3.88 3.88 1.42 1.42 3.88-3.88 3.88 3.88 1.42-1.42L18.59 12z" />
-            </svg>
-          </button>
+        <div className="gallery-section overview-gallery">
+          <GalleryMarquee images={galleryImages} />
         </div>
 
         <div className="overview-stats" aria-label="Adikara 2025 statistics" ref={statsRef}>
@@ -226,12 +127,12 @@ export function OverviewSection() {
         <p className="overview-description">
           <strong>ADIKARA</strong> (Ajang Digital Kreatif dan Inovasi Informatika) is
           a competition organized by
-          <br />
+          <br className="overview-descBreak" />{" "}
           the <strong>Faculty of Informatics</strong> at <strong>Telkom University</strong>.
           It aims to develop technical skills,
-          <br />
+          <br className="overview-descBreak" />{" "}
           creativity, and an entrepreneurial spirit through a variety of challenging and
-          <br />
+          <br className="overview-descBreak" />{" "}
           innovative competitions.
         </p>
       </div>

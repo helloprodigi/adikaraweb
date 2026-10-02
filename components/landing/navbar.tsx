@@ -110,9 +110,14 @@ export function Navbar() {
           ))}
         </nav>
 
-        <Link className="button button-small nav-register-btn" href="/#register">
+        <a
+          className="button button-small nav-register-btn"
+          href="https://helloprodigi.pro/PendaftaranAdikara2026"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Register Now
-        </Link>
+        </a>
       </header>
 
       {/* Mobile Sidebar Overlay */}
@@ -154,13 +159,15 @@ export function Navbar() {
         </div>
 
         <div className="sidebar-footer">
-          <Link
+          <a
             className="button button-small sidebar-register-btn"
-            href="/#register"
+            href="https://helloprodigi.pro/PendaftaranAdikara2026"
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={handleNavClick}
           >
             Register Now
-          </Link>
+          </a>
         </div>
       </aside>
     </>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Google_Sans } from "next/font/google";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import "./globals.css";
 
 const googleSans = Google_Sans({
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             __html: "window.scrollTo(0, 0);",
           }}
         />
+        <SmoothScroll />
         {children}
       </body>
     </html>

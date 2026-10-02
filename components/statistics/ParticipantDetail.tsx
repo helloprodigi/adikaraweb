@@ -3,27 +3,10 @@
 import { useEffect, useState } from "react";
 import { useReveal } from "./useReveal";
 import styles from "./statistics.module.css";
+import { useStatistics } from "./StatisticsContext";
+import { PLACEHOLDER, type DetailItem } from "./statsData";
 
-// Data belum tersedia, tampilkan placeholder sampai API statistics siap
-const PLACEHOLDER = "???";
-
-const batchStats = [
-  { label: "2026", value: null },
-  { label: "2025", value: null },
-  { label: "2024", value: null },
-  { label: "2023", value: null },
-];
-
-const studyProgramStats = [
-  { label: "S1 Informatics", value: null },
-  { label: "S1 Data Science", value: null },
-  { label: "S1 Software Engineering", value: null },
-  { label: "S1 Information Technology", value: null },
-];
-
-const detailMax = 400;
-
-type DetailItem = { label: string; value: number | null };
+const DETAIL_MAX = 450;
 
 type DetailCardProps = {
   title: string;
@@ -42,7 +25,7 @@ function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardPro
       </div>
       <div>
         {items.map((item, index) => (
-          <div className={styles.detailRow} key={item.label}>
+          <div className={styles.detailRow} key={`${title}-${index}`}>
             <span>{item.label}</span>
             <div>
               <i
@@ -50,7 +33,7 @@ function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardPro
                   width:
                     item.value === null
                       ? "0%"
-                      : `${(item.value / detailMax) * 100}%`,
+                      : `${(item.value / DETAIL_MAX) * 100}%`,
                 }}
               />
             </div>
@@ -68,16 +51,20 @@ function DetailCard({ title, firstColumn, items, animatedValues }: DetailCardPro
 
 export function ParticipantDetail() {
   const { ref, isVisible } = useReveal<HTMLElement>();
-  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>([
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-  ]);
+  const { data, year } = useStatistics();
+  const batchStats = data.batch;
+  const studyProgramStats = data.studyProgram;
+  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>(
+    () => [...data.batch, ...data.studyProgram].map((item) => item.value)
+  );
+
+  // Placeholder years have nothing to count up, so derive the display
+  // values instead of reading stale state from the previous year.
+  const allItems = [...batchStats, ...studyProgramStats];
+  const hasFigures = allItems.some((item) => item.value !== null);
+  const displayValues = hasFigures
+    ? animatedValues
+    : allItems.map((item) => item.value);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -85,7 +72,7 @@ export function ParticipantDetail() {
     const targets = [...batchStats, ...studyProgramStats].map(
       (item) => item.value
     );
-    // Lewati animasi count-up kalau datanya belum ada
+    // Placeholder years render directly, nothing to count up.
     if (targets.every((target) => target === null)) return;
 
     const startTime = performance.now() + 300;
@@ -111,7 +98,7 @@ export function ParticipantDetail() {
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [isVisible]);
+  }, [isVisible, year]);
 
   return (
     <section
@@ -119,19 +106,19 @@ export function ParticipantDetail() {
       className={`${styles.contentSection} ${isVisible ? styles.sectionVisible : ""}`}
       aria-labelledby="participant-details-title"
     >
-      <h2 id="participant-details-title">Participant Details</h2>
+      <h2 id="participant-details-title">Detail Angkatan &amp; Prodi (berdasarkan form)</h2>
       <div className={styles.detailsGrid}>
         <DetailCard
-          title="Batch (Year of Entry)"
-          firstColumn="Batch"
+          title="Angkatan"
+          firstColumn="Angkatan"
           items={batchStats}
-          animatedValues={animatedValues.slice(0, batchStats.length)}
+          animatedValues={displayValues.slice(0, batchStats.length)}
         />
         <DetailCard
-          title="Study Program"
-          firstColumn="Program"
+          title="Program Studi"
+          firstColumn="Prodi"
           items={studyProgramStats}
-          animatedValues={animatedValues.slice(batchStats.length)}
+          animatedValues={displayValues.slice(batchStats.length)}
         />
       </div>
     </section>

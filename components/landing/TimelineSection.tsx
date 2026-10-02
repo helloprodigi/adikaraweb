@@ -57,61 +57,9 @@ function getPhaseStatus(
   return "upcoming";
 }
 
-const TARGET_PRIZE = 100000000;
-
-const CONFETTI_COLORS = [
-  "#ed1c24",
-  "#ff4b57",
-  "#ffca28",
-  "#ff6818",
-  "#fff1a8",
-  "#ffffff",
-];
-
-type ConfettiPiece = {
-  id: number;
-  x: number;
-  yStart: number;
-  rise: number;
-  fall: number;
-  drift: number;
-  rot: number;
-  color: string;
-  width: number;
-  height: number;
-  delay: number;
-  duration: number;
-};
-
-function createConfetti(count: number): ConfettiPiece[] {
-  return Array.from({ length: count }, (_, i) => {
-    const spread = count > 1 ? i / (count - 1) : 0.5;
-
-    return {
-      id: i,
-      x: 12 + spread * 76 + (Math.random() - 0.5) * 5,
-      yStart: 42 + Math.random() * 20,
-      rise: -(28 + Math.random() * 52),
-      fall: 210 + Math.random() * 140,
-      drift: (Math.random() - 0.5) * 70,
-      rot: (Math.random() - 0.5) * 540,
-      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-      width: 6 + Math.random() * 3,
-      height: 9 + Math.random() * 4,
-      delay: Math.random() * 0.35,
-      duration: 2.3 + Math.random() * 0.8,
-    };
-  });
-}
-
 export function TimelineSection() {
-  const prizeRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [lineProgress, setLineProgress] = useState(0);
-
-  const [hasPrizeStarted, setHasPrizeStarted] = useState(false);
-  const [cashPrize, setCashPrize] = useState(0);
-  const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
   const [now, setNow] = useState<Date | null>(null);
 
   // Resolve "today" on the client so server and client markup match
@@ -121,63 +69,6 @@ export function TimelineSection() {
     const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, []);
-
-  // IntersectionObserver for Prize Row
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasPrizeStarted(true);
-        }
-      },
-      { threshold: 0.4 }
-    );
-
-    if (prizeRef.current) {
-      observer.observe(prizeRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Cash Prize Count-up Effect (Rp 0 to Rp100.000.000)
-  useEffect(() => {
-    if (!hasPrizeStarted) return;
-
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-    const duration = 1600;
-    const startTime = performance.now();
-    const targetPrize = TARGET_PRIZE;
-    let confettiTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const animatePrize = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-
-      setCashPrize(Math.floor(easeProgress * targetPrize));
-
-      if (progress < 1) {
-        requestAnimationFrame(animatePrize);
-      } else {
-        setCashPrize(targetPrize);
-
-        // Confetti burst on the prize capsule once the full amount is reached
-        if (!reducedMotion) {
-          setConfetti(createConfetti(48));
-          confettiTimer = setTimeout(() => setConfetti([]), 4200);
-        }
-      }
-    };
-
-    requestAnimationFrame(animatePrize);
-
-    return () => {
-      if (confettiTimer) clearTimeout(confettiTimer);
-    };
-  }, [hasPrizeStarted]);
 
   // Scroll-driven timeline line progress
   useEffect(() => {
@@ -226,38 +117,6 @@ export function TimelineSection() {
       />
 
       <div className="timeline-content">
-        <div className="prize-row" ref={prizeRef}>
-          <span>Total cash prize pool</span>
-          <strong className={cashPrize >= TARGET_PRIZE ? "is-complete" : ""}>
-            Rp{cashPrize.toLocaleString("id-ID")}
-            {confetti.length > 0 && (
-              <span className="prize-confetti" aria-hidden="true">
-                {confetti.map((piece) => (
-                  <span
-                    key={piece.id}
-                    className="prize-confetti-piece"
-                    style={
-                      {
-                        "--x": `${piece.x}%`,
-                        "--y-start": `${piece.yStart}px`,
-                        "--rise": `${piece.rise}px`,
-                        "--fall": `${piece.fall}px`,
-                        "--drift": `${piece.drift}px`,
-                        "--rot": `${piece.rot}deg`,
-                        "--confetti-color": piece.color,
-                        "--confetti-w": `${piece.width}px`,
-                        "--confetti-h": `${piece.height}px`,
-                        "--delay": `${piece.delay}s`,
-                        "--duration": `${piece.duration}s`,
-                      } as React.CSSProperties
-                    }
-                  />
-                ))}
-              </span>
-            )}
-          </strong>
-        </div>
-
         <h2 id="timeline-title">Event Timeline</h2>
 
         <div className="timeline-track" ref={trackRef}>

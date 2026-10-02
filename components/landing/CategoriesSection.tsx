@@ -5,16 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
 const categoryCards = [
-  { name: "Innovation", src: "/landing/card-categories/card-innovation.svg" },
+  { name: "Innovation", src: "/landing/card-categories/card-innovation.webp" },
   {
     name: "Entrepreneurship",
-    src: "/landing/card-categories/card-entrepreneurship.svg",
+    src: "/landing/card-categories/card-entrepreneurship.webp",
   },
-  { name: "Data Mining", src: "/landing/card-categories/card-datamining.svg" },
-  { name: "Capture The Flag", src: "/landing/card-categories/card-ctf.svg" },
+  { name: "Data Mining", src: "/landing/card-categories/card-datamining.webp" },
+  { name: "Capture The Flag", src: "/landing/card-categories/card-ctf.webp" },
   {
     name: "Competitive Programming",
-    src: "/landing/card-categories/card-competitiveprogramming.svg",
+    src: "/landing/card-categories/card-competitiveprogramming.webp",
   },
 ];
 

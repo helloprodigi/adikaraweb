@@ -67,7 +67,12 @@ export function SponsorSection() {
           brighter digital future for Indonesia.
         </p>
 
-        <a className="button sponsor-button" href="#register">
+        <a
+          className="button sponsor-button"
+          href="https://helloprodigi.pro/PendaftaranAdikara2026"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Become a Sponsor
         </a>
       </div>

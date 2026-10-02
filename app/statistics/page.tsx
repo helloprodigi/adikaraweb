@@ -4,6 +4,7 @@ import { Navbar } from "@/components/landing/navbar";
 import { ParticipantDetail } from "@/components/statistics/ParticipantDetail";
 import { RegistDistribution } from "@/components/statistics/RegistDistribution";
 import { RegistStatistic } from "@/components/statistics/RegistStatistic";
+import { StatisticsProvider } from "@/components/statistics/StatisticsContext";
 import styles from "@/components/statistics/statistics.module.css";
 
 export default function StatisticsPage() {
@@ -11,25 +12,27 @@ export default function StatisticsPage() {
     <>
       <Navbar />
       <main className={styles.page}>
-        <RegistStatistic />
-        <RegistDistribution />
-        <div className={styles.sectionConnector} aria-hidden="true">
-          <Image
-            className={`${styles.connectorDecor} ${styles.connectorDecorLeft}`}
-            src="/landing/vertical-decor.svg"
-            alt=""
-            width={390}
-            height={756}
-          />
-          <Image
-            className={`${styles.connectorDecor} ${styles.connectorDecorRight}`}
-            src="/landing/vertical-decor.svg"
-            alt=""
-            width={390}
-            height={756}
-          />
-        </div>
-        <ParticipantDetail />
+        <StatisticsProvider>
+          <RegistStatistic />
+          <RegistDistribution />
+          <div className={styles.sectionConnector} aria-hidden="true">
+            <Image
+              className={`${styles.connectorDecor} ${styles.connectorDecorLeft}`}
+              src="/landing/vertical-decor.svg"
+              alt=""
+              width={390}
+              height={756}
+            />
+            <Image
+              className={`${styles.connectorDecor} ${styles.connectorDecorRight}`}
+              src="/landing/vertical-decor.svg"
+              alt=""
+              width={390}
+              height={756}
+            />
+          </div>
+          <ParticipantDetail />
+        </StatisticsProvider>
       </main>
       <Footer />
     </>

@@ -2,60 +2,35 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { useStatistics } from "./StatisticsContext";
+import { PLACEHOLDER, YEARS } from "./statsData";
 import styles from "./statistics.module.css";
-
-const YEARS = [2024, 2025, 2026];
-
-// Data belum tersedia, tampilkan placeholder sampai API statistics siap
-const PLACEHOLDER = "???";
-
-type SummaryStat = {
-  label: string;
-  value: number | null;
-  featured?: boolean;
-};
-
-const yearStatsData: Record<number, SummaryStat[]> = {
-  2024: [
-    { label: "Total Registrations", value: null },
-    { label: "Individual Registrations", value: null },
-    { label: "Team Registrations", value: null },
-    { label: "Estimated Participants", value: null, featured: true },
-  ],
-  2025: [
-    { label: "Total Registrations", value: null },
-    { label: "Individual Registrations", value: null },
-    { label: "Team Registrations", value: null },
-    { label: "Estimated Participants", value: null, featured: true },
-  ],
-  2026: [
-    { label: "Total Registrations", value: null },
-    { label: "Individual Registrations", value: null },
-    { label: "Team Registrations", value: null },
-    { label: "Estimated Participants", value: null, featured: true },
-  ],
-};
 
 export function RegistStatistic() {
   const heroRef = useRef<HTMLElement>(null);
-  const [yearIndex, setYearIndex] = useState(1); // 2025 is default index
-  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>([
-    null,
-    null,
-    null,
-    null,
-  ]);
+  const { year, setYear, data } = useStatistics();
+  const [animatedValues, setAnimatedValues] = useState<(number | null)[]>(
+    () => data.summary.map((stat) => stat.value)
+  );
   const [isHeroVisible, setIsHeroVisible] = useState(false);
 
-  const activeYear = YEARS[yearIndex];
-  const currentSummaryStats = yearStatsData[activeYear];
+  const currentSummaryStats = data.summary;
+
+  // "value" shows the animated figures, "placeholder" shows ??? once the
+  // count-down has finished.
+  const [phase, setPhase] = useState<"value" | "placeholder">("value");
+
+  const displayValues =
+    phase === "placeholder"
+      ? currentSummaryStats.map((stat) => stat.value)
+      : animatedValues;
 
   const handlePrevYear = () => {
-    setYearIndex((prev) => (prev > 0 ? prev - 1 : YEARS.length - 1));
+    setYear(YEARS[(YEARS.indexOf(year) - 1 + YEARS.length) % YEARS.length]);
   };
 
   const handleNextYear = () => {
-    setYearIndex((prev) => (prev < YEARS.length - 1 ? prev + 1 : 0));
+    setYear(YEARS[(YEARS.indexOf(year) + 1) % YEARS.length]);
   };
 
   useEffect(() => {
@@ -79,23 +54,41 @@ export function RegistStatistic() {
   useEffect(() => {
     if (!isHeroVisible) return;
 
-    // Lewati animasi count-up kalau datanya belum ada
     const targets = currentSummaryStats.map((stat) => stat.value);
-    if (targets.every((target) => target === null)) return;
+    const isPlaceholder = targets.every((target) => target === null);
+    // Switching to a year with no published figures counts the old numbers
+    // down to zero first, then swaps in the placeholder.
+    const duration = isPlaceholder ? 420 : 1200;
 
     let animationFrame = 0;
     const startTime = performance.now();
-    const duration = 1200;
 
     const animate = (now: number) => {
       const progress = Math.max(0, Math.min((now - startTime) / duration, 1));
-      const easedProgress = 1 - Math.pow(2, -10 * progress);
+
+      if (isPlaceholder) {
+        setAnimatedValues((previous) =>
+          previous.map((value) =>
+            value === null ? null : Math.max(0, Math.round(value * (1 - progress)))
+          )
+        );
+
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animate);
+        } else {
+          setPhase("placeholder");
+        }
+        return;
+      }
+
+      setPhase("value");
 
       if (progress === 1) {
         setAnimatedValues(targets);
         return;
       }
 
+      const easedProgress = 1 - Math.pow(2, -10 * progress);
       setAnimatedValues(
         targets.map((target) =>
           target === null ? null : Math.floor(target * easedProgress)
@@ -106,7 +99,7 @@ export function RegistStatistic() {
 
     animationFrame = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrame);
-  }, [yearIndex, isHeroVisible]);
+  }, [year, isHeroVisible]);
 
   useEffect(() => {
     const updateParallax = () => {
@@ -147,7 +140,9 @@ export function RegistStatistic() {
       <div className={styles.heroContent}>
         <p className={styles.eyebrow}>ADIKARA</p>
         <h1 id="statistics-title">Registration Statistic</h1>
-        <p>Realtime Data Overview Of All ADIKARA Participants.</p>
+        <p className={styles.dataTimestamp}>
+          Data per 2 Oktober 2026, 16.12.25 WIB
+        </p>
         <div className={styles.yearSelector} aria-label="Registration year">
           <button
             type="button"
@@ -157,7 +152,7 @@ export function RegistStatistic() {
           >
             <Image className={styles.yearArrowLeft} src="/statistics/arrow.svg" alt="" width={76} height={59} />
           </button>
-          <span>{activeYear}</span>
+          <span>{year}</span>
           <button
             type="button"
             className={styles.yearArrowBtn}
@@ -177,12 +172,16 @@ export function RegistStatistic() {
               key={stat.label}
             >
               <p>{stat.label}</p>
-              <strong>
-                {animatedValues[index] === null || animatedValues[index] === undefined
+              <strong
+                className={
+                  phase === "placeholder" ? styles.isPlaceholder : undefined
+                }
+              >
+                {displayValues[index] === null || displayValues[index] === undefined
                   ? PLACEHOLDER
-                  : animatedValues[index]!.toLocaleString("en-US")}
+                  : displayValues[index]!.toLocaleString("en-US")}
               </strong>
-              <span>Individuals and Teams</span>
+              <span className={styles.statCaption}>{stat.caption}</span>
             </article>
           ))}
         </div>

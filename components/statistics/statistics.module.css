@@ -73,6 +73,12 @@
   margin: 0;
 }
 
+.heroContent .dataTimestamp {
+  font-size: clamp(12px, 1.2vw, 14px);
+  font-weight: 500;
+  margin-top: 6px;
+}
+
 .sideWing {
   height: auto;
   opacity: 0;
@@ -194,6 +200,25 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Must live outside the mobile media query: the base .summaryCard sets
+   opacity 0, so the reveal animation is what makes the cards visible
+   again on every breakpoint. */
+.heroVisible .summaryCard {
+  animation: statisticsCardReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
+}
+
+.heroVisible .summaryCard:nth-child(2) {
+  animation-delay: 0.75s;
+}
+
+.heroVisible .summaryCard:nth-child(3) {
+  animation-delay: 0.85s;
+}
+
+.heroVisible .summaryCard:nth-child(4) {
+  animation-delay: 0.95s;
+}
+
 .summaryCard p {
   color: #555b6f;
   font-size: 12px;
@@ -210,9 +235,33 @@
   margin-bottom: 8px;
 }
 
+/* Crossfade when the figures give way to the ??? placeholder */
+.summaryCard strong.isPlaceholder {
+  animation: statisticsPlaceholderFade 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes statisticsPlaceholderFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .summaryCard span {
   color: #6b7082;
   font-size: 11px;
+}
+
+/* Per-card caption so each stat explains itself */
+.summaryCard .statCaption {
+  color: #6b7082;
+  display: block;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .featuredCard {
@@ -223,7 +272,8 @@
 
 .featuredCard p,
 .featuredCard strong,
-.featuredCard span {
+.featuredCard span,
+.featuredCard .statCaption {
   color: #fff;
 }
 
@@ -692,22 +742,6 @@
     min-height: 105px;
     padding: 14px 12px;
   }
-
-.heroVisible .summaryCard {
-  animation: statisticsCardReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
-}
-
-.summaryCard:nth-child(2) {
-  animation-delay: 0.75s;
-}
-
-.summaryCard:nth-child(3) {
-  animation-delay: 0.85s;
-}
-
-.summaryCard:nth-child(4) {
-  animation-delay: 0.95s;
-}
 
 .summaryCard p {
     font-size: 9px;

@@ -20,63 +20,18 @@ type RankingCategory = {
   rankings: RankingEntry[];
 };
 
+// Finalis belum diumumkan, tampilkan placeholder sampai data tersedia
 const categories: RankingCategory[] = [
-  {
-    id: "innovation",
-    label: "Innovation",
-    rankings: [
-      { teamId: "CATERWISE-01", teamName: "Tim Mas Asix", description: "Prediksi Food Waste Pada Warung", score: 91.4 },
-      { teamId: "ADA-02", teamName: "Telkom Cantik", description: "Platform Jual Beli Telur Untuk Memangkas Tengklak", score: 91.39 },
-      { teamId: "FINJOB-03", teamName: "Bismillah Juara", description: "Loker Dan Pembuatan CV Secara Otomatis", score: 60.78 },
-      { teamId: "CATERWISE2-04", teamName: "Telkom Cantik2", description: "Bangun Aplikasi Inovasi Baru", score: 57.55 },
-      { teamId: "CATERWISE3-05", teamName: "Tim Mas Asix2", description: "Bangun Aplikasi Inovasi Terbaru", score: 10.19 },
-    ],
-  },
-  {
-    id: "competitive-programming",
-    label: "Competitive Programming",
-    rankings: [
-      { teamId: "CP-101", teamName: "Zero Judgement", description: "Competitive Programming Finalist", score: 94.82 },
-      { teamId: "CP-102", teamName: "Segitiga Emas", description: "Competitive Programming Finalist", score: 92.15 },
-      { teamId: "CP-103", teamName: "Stack Overflow", description: "Competitive Programming Finalist", score: 88.64 },
-      { teamId: "CP-104", teamName: "Recursion", description: "Competitive Programming Finalist", score: 84.31 },
-      { teamId: "CP-105", teamName: "Binary Star", description: "Competitive Programming Finalist", score: 79.95 },
-    ],
-  },
-  {
-    id: "cyber-security",
-    label: "Cyber Security",
-    rankings: [
-      { teamId: "CS-201", teamName: "Firewall", description: "Cyber Security Finalist", score: 93.18 },
-      { teamId: "CS-202", teamName: "Cipher Squad", description: "Cyber Security Finalist", score: 89.73 },
-      { teamId: "CS-203", teamName: "Secure Bytes", description: "Cyber Security Finalist", score: 86.4 },
-      { teamId: "CS-204", teamName: "Null Pointer", description: "Cyber Security Finalist", score: 82.22 },
-      { teamId: "CS-205", teamName: "Root Access", description: "Cyber Security Finalist", score: 78.09 },
-    ],
-  },
-  {
-    id: "data-mining",
-    label: "Data Mining",
-    rankings: [
-      { teamId: "DM-301", teamName: "Data Forge", description: "Data Mining Finalist", score: 90.77 },
-      { teamId: "DM-302", teamName: "Mining Minds", description: "Data Mining Finalist", score: 88.5 },
-      { teamId: "DM-303", teamName: "Big Data", description: "Data Mining Finalist", score: 85.29 },
-      { teamId: "DM-304", teamName: "Data Diva", description: "Data Mining Finalist", score: 81.43 },
-      { teamId: "DM-305", teamName: "Pattern Seekers", description: "Data Mining Finalist", score: 76.88 },
-    ],
-  },
-  {
-    id: "entrepreneurship",
-    label: "Entrepreneurship",
-    rankings: [
-      { teamId: "EP-401", teamName: "Startup Spirit", description: "Entrepreneurship Finalist", score: 92.34 },
-      { teamId: "EP-402", teamName: "Growth Hackers", description: "Entrepreneurship Finalist", score: 87.91 },
-      { teamId: "EP-403", teamName: "Business Mind", description: "Entrepreneurship Finalist", score: 84.57 },
-      { teamId: "EP-404", teamName: "Market Makers", description: "Entrepreneurship Finalist", score: 80.16 },
-      { teamId: "EP-405", teamName: "Value Creators", description: "Entrepreneurship Finalist", score: 75.42 },
-    ],
-  },
+  { id: "innovation", label: "Innovation", rankings: [] },
+  { id: "competitive-programming", label: "Competitive Programming", rankings: [] },
+  { id: "cyber-security", label: "Cyber Security", rankings: [] },
+  { id: "data-mining", label: "Data Mining", rankings: [] },
+  { id: "entrepreneurship", label: "Entrepreneurship", rankings: [] },
 ];
+
+const PLACEHOLDER_NAME = "Waiting for teams..";
+const PLACEHOLDER_DESCRIPTION = "Waiting for you to be the finalist";
+const PLACEHOLDER_SCORE = "??";
 
 export default function RankingsPage() {
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
@@ -162,19 +117,36 @@ export default function RankingsPage() {
             <div className={styles.rankings}>
               <h2 id="ranking-list-title">Top 5 {category.label}</h2>
               <div className={styles.cardList} role="tabpanel">
-                {category.rankings.map((entry, index) => (
-                  <article className={styles.rankingCard} key={entry.teamId}>
-                    <div className={styles.rank}>{index + 1}</div>
-                    <div className={styles.teamInfo}>
-                      <h3>{entry.teamName}</h3>
-                      <p>{entry.description}</p>
-                    </div>
-                    <div className={styles.score}>
-                      <strong>{entry.score.toFixed(2)}</strong>
-                      <span>Final Score</span>
-                    </div>
-                  </article>
-                ))}
+                {category.rankings.length > 0
+                  ? category.rankings.map((entry, index) => (
+                      <article className={styles.rankingCard} key={entry.teamId}>
+                        <div className={styles.rank}>{index + 1}</div>
+                        <div className={styles.teamInfo}>
+                          <h3>{entry.teamName}</h3>
+                          <p>{entry.description}</p>
+                        </div>
+                        <div className={styles.score}>
+                          <strong>{entry.score.toFixed(2)}</strong>
+                          <span>Final Score</span>
+                        </div>
+                      </article>
+                    ))
+                  : Array.from({ length: 5 }, (_, index) => (
+                      <article
+                        className={`${styles.rankingCard} ${styles.placeholderCard}`}
+                        key={`placeholder-${category.id}-${index}`}
+                      >
+                        <div className={styles.rank}>{index + 1}</div>
+                        <div className={styles.teamInfo}>
+                          <h3>{PLACEHOLDER_NAME}</h3>
+                          <p>{PLACEHOLDER_DESCRIPTION}</p>
+                        </div>
+                        <div className={styles.score}>
+                          <strong>{PLACEHOLDER_SCORE}</strong>
+                          <span>Final Score</span>
+                        </div>
+                      </article>
+                    ))}
               </div>
             </div>
           </div>

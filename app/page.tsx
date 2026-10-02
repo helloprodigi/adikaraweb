@@ -9,9 +9,12 @@ import { OverviewSection } from "@/components/landing/OverviewSection";
 import { SponsorSection } from "@/components/landing/SponsorSection";
 import { ThemeSection } from "@/components/landing/ThemeSection";
 import { TimelineSection } from "@/components/landing/TimelineSection";
+import { getGalleryImages } from "@/components/landing/galleryImages";
 import { Footer } from "@/components/footer";
 
 export default function Home() {
+  const galleryImages = getGalleryImages();
+
   return (
     <main className="landing-page">
       <CurtainIntro />
@@ -19,7 +22,7 @@ export default function Home() {
       <GlowField />
       <Hero />
       <ThemeSection />
-      <OverviewSection />
+      <OverviewSection galleryImages={galleryImages} />
       <TimelineSection />
       <CategoriesSection />
       <MyProdigiSection />
