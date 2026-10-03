@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
+import { subscribeToScroll } from "@/components/scrollTicker";
 
 export function Hero() {
   const heroRef = useRef<HTMLElement>(null);
@@ -12,24 +13,18 @@ export function Hero() {
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    let ticking = false;
+    let lastDistance = -1;
 
-    const update = () => {
-      const distance = Math.min(Math.max(window.scrollY, 0), window.innerHeight);
+    return subscribeToScroll((scrollY, viewportHeight) => {
+      const distance = Math.min(Math.max(scrollY, 0), viewportHeight);
+
+      // The offset saturates at one viewport height, so past that point there
+      // is nothing to write and the custom property is left alone.
+      if (distance === lastDistance) return;
+      lastDistance = distance;
+
       hero.style.setProperty("--hero-parallax", `${distance}px`);
-      ticking = false;
-    };
-
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    });
   }, []);
 
   return (
@@ -53,17 +48,22 @@ export function Hero() {
 
       <div className="hero-content">
         <div className="partner-logos" aria-label="Event partners">
+          {/* Declared at the size they are actually rendered at (CSS pins the
+              height to 48px), which keeps next/image from warning about a
+              one-sided override and from fetching an oversized variant. */}
           <Image
             src="/landing/hero/informatics-logo.svg"
             alt="Telkom University Faculty of Informatics"
-            width={182}
+            width={249}
             height={48}
+            sizes="(max-width: 900px) 150px, 249px"
           />
           <Image
-            src="/landing/hero/prodigi-logo.svg"
+            src="/landing/hero/prodigi-logo.webp"
             alt="Prodigi"
-            width={142}
+            width={203}
             height={48}
+            sizes="(max-width: 900px) 115px, 203px"
           />
         </div>
 

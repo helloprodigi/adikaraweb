@@ -60,8 +60,15 @@ export function RandomAmbientGlow() {
     let width = 0;
     let height = 0;
     let lastTime = performance.now();
+    const running = !reduced;
+    let onScreen = true;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Same reasoning as the landing glow: the blobs drift slowly enough that a
+    // half-rate paint on a smaller backing store is indistinguishable, and the
+    // loop stops entirely while the section is off screen.
+    const FRAME_INTERVAL = 1000 / 30;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     let blobs: LightBlob[] = [];
 
@@ -108,6 +115,11 @@ export function RandomAmbientGlow() {
     };
 
     const draw = (now: number) => {
+      if (now - lastTime < FRAME_INTERVAL) {
+        animId = requestAnimationFrame(draw);
+        return;
+      }
+
       const dt = Math.min(now - lastTime, 100);
       lastTime = now;
 
@@ -182,8 +194,30 @@ export function RandomAmbientGlow() {
         ctx.fill();
       }
 
-      if (!reduced) {
+      if (running && onScreen) {
         animId = requestAnimationFrame(draw);
+      }
+    };
+
+    const startLoop = () => {
+      if (animId === 0 && running && onScreen && !document.hidden) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(draw);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animId !== 0) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopLoop();
+      } else {
+        startLoop();
       }
     };
 
@@ -191,15 +225,32 @@ export function RandomAmbientGlow() {
     const observer = new ResizeObserver(handleResize);
     observer.observe(container);
 
+    const screenObserver = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (onScreen) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { rootMargin: "120px" }
+    );
+    screenObserver.observe(container);
+
     if (reduced) {
       draw(1);
     } else {
-      animId = requestAnimationFrame(draw);
+      startLoop();
     }
 
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
-      if (animId) cancelAnimationFrame(animId);
+      stopLoop();
+      document.removeEventListener("visibilitychange", handleVisibility);
       observer.disconnect();
+      screenObserver.disconnect();
     };
   }, []);
 

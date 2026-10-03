@@ -106,10 +106,11 @@ export function MyProdigiSection() {
             <div className="myprodigi-mockup-tilt" ref={tiltRef}>
               <Image
                 className="myprodigi-mockup"
-                src="/landing/myprodigi-mockup.svg"
+                src="/landing/myprodigi-mockup.webp"
                 alt="MyProdigi mobile application preview"
-                width={629}
-                height={722}
+                width={1258}
+                height={1444}
+                sizes="(max-width: 900px) 92vw, 44vw"
               />
             </div>
           </div>

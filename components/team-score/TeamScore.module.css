@@ -66,7 +66,7 @@
 .hero {
   min-height: 980px;
   overflow: hidden;
-  padding: 150px 24px 90px;
+  padding: 150px 24px var(--section-space);
   position: relative;
 }
 
@@ -171,13 +171,6 @@
 .scoreCard p {
   font-size: 24px;
   margin: 0;
-}
-
-.teamMeta {
-  font-size: 13px;
-  font-weight: 500;
-  margin-top: 6px;
-  opacity: 0.85;
 }
 
 .finalScore {
@@ -398,7 +391,7 @@
 @media (max-width: 700px) {
   .hero {
     min-height: 0;
-    padding: 130px 16px 60px;
+    padding: 130px 16px var(--section-space);
   }
 
   .pattern {
@@ -456,6 +449,7 @@
     font-size: 20px;
   }
 
+
   .finalScore {
     text-align: left;
   }
@@ -497,7 +491,7 @@
 
 @media (max-width: 420px) {
   .hero {
-    padding: 120px 12px 48px;
+    padding: 120px 12px var(--section-space);
   }
 
   .wing {

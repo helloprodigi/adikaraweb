@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
+import { useScoreGate } from "@/components/rankings/ScoreGateProvider";
 import { RandomAmbientGlow } from "@/components/team-score/RandomAmbientGlow";
 import styles from "./rankings.module.css";
 
@@ -33,10 +34,16 @@ const PLACEHOLDER_NAME = "Waiting for teams..";
 const PLACEHOLDER_DESCRIPTION = "Waiting for you to be the finalist";
 const PLACEHOLDER_SCORE = "??";
 
+const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
+
 export default function RankingsPage() {
+  const { openScoreGate } = useScoreGate();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isVisible, setIsVisible] = useState(false);
   const [rankingsVisible, setRankingsVisible] = useState(false);
+  const [nim, setNim] = useState("");
+  const [nimError, setNimError] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
   const pageRef = useRef<HTMLElement>(null);
   const rankingsRef = useRef<HTMLElement>(null);
   const category = categories.find((item) => item.id === activeCategory) ?? categories[0];
@@ -77,6 +84,33 @@ export default function RankingsPage() {
     return () => observer.disconnect();
   }, []);
 
+  // True on the server and on the first client render alike, so the block ships
+  // hidden and React has nothing to reconcile. It is only dropped once the
+  // section has scrolled into view and the reveal animation starts.
+  const isPending = !rankingsVisible;
+
+  const handleNimChange = (value: string) => {
+    setNim(value);
+    if (nimError) setNimError("");
+  };
+
+  const handleScoreCheck = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedNim = nim.trim();
+
+    if (!trimmedNim) {
+      setNimError(NIM_REQUIRED_MESSAGE);
+      inputRef.current?.focus();
+      return;
+    }
+
+    setNimError("");
+    // The gate lives above the router, so the countdown and the drop keep
+    // playing while the score page is loaded behind them.
+    openScoreGate(trimmedNim);
+  };
+
   return (
     <>
       <Navbar />
@@ -94,7 +128,9 @@ export default function RankingsPage() {
 
         <section
           ref={rankingsRef}
-          className={`${styles.rankingsSection} ${rankingsVisible ? styles.rankingsVisible : ""}`}
+          className={`${styles.rankingsSection} ${
+            isPending ? styles.rankingsPending : ""
+          } ${rankingsVisible ? styles.rankingsVisible : ""}`}
           aria-labelledby="ranking-list-title"
         >
           <RandomAmbientGlow />
@@ -158,22 +194,41 @@ export default function RankingsPage() {
             <Image className={`${styles.panelOrnament} ${styles.panelOrnamentRight}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
             <h2 id="score-check-title">Check Your Team&apos;s Score</h2>
             <p>All Participants Can View Their Detailed Scores And Judges&apos; Feedback, Whether They Qualified For The Final Or Not.</p>
-            <form className={styles.searchForm} action="/team-score" method="get">
-              <label className={styles.searchInput}>
+            <form
+              className={styles.searchForm}
+              onSubmit={handleScoreCheck}
+              noValidate
+            >
+              <label
+                className={`${styles.searchInput} ${nimError ? styles.searchInputError : ""}`}
+              >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
                   <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                 </svg>
-                <span className={styles.srOnly}>NIM atau ID tim</span>
+                <span className={styles.srOnly}>NIM ketua tim</span>
                 <input
-                  type="search"
-                  name="id"
+                  ref={inputRef}
+                  type="text"
+                  inputMode="numeric"
+                  name="nim"
                   placeholder="Masukkan NIM ketua"
+                  value={nim}
+                  onChange={(event) => handleNimChange(event.target.value)}
+                  aria-required="true"
+                  aria-invalid={nimError ? "true" : "false"}
+                  aria-describedby="score-check-result"
                 />
               </label>
               <button type="submit">Cek Nilai</button>
             </form>
-            <div className={styles.result} aria-live="polite" />
+            <div
+              className={`${styles.result} ${nimError ? styles.resultError : ""}`}
+              id="score-check-result"
+              aria-live="polite"
+            >
+              {nimError}
+            </div>
           </div>
         </section>
       </main>

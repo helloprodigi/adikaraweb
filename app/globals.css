@@ -8,6 +8,15 @@
   --pattern-pink: #f9dfe1;
   --font-family-sans: var(--font-google-sans), "Google Sans", "Product Sans", Arial,
     sans-serif;
+  /* Vertical rhythm shared by every page section */
+  --section-space: 80px;
+  --section-space-mobile: 52px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --section-space: var(--section-space-mobile);
+  }
 }
 
 @theme inline {
@@ -300,7 +309,7 @@ a {
 .theme-content {
   margin: 0 auto;
   max-width: 940px;
-  padding: 96px 24px;
+  padding: var(--section-space) 24px;
   position: relative;
   text-align: center;
   z-index: 1;
@@ -325,7 +334,6 @@ a {
 .theme-card {
   filter: blur(14px);
   height: auto;
-  mix-blend-mode: multiply;
   opacity: 0;
   position: absolute;
   top: 50%;
@@ -391,7 +399,7 @@ a {
 .overview-content {
   margin: 0 auto;
   max-width: 1320px;
-  padding: 80px 32px 96px;
+  padding: var(--section-space) 32px;
   position: relative;
   text-align: center;
   width: 100%;
@@ -570,7 +578,7 @@ a {
 .gallery-section {
   background: transparent;
   overflow: hidden;
-  padding: 0 0 110px;
+  padding: 0 0 var(--section-space);
   position: relative;
 }
 
@@ -578,7 +586,7 @@ a {
    negative offset that only made sense as a sibling of overview. */
 .overview-content .gallery-section {
   margin-top: 0;
-  padding-bottom: 48px;
+  padding-bottom: var(--section-space);
 }
 
 
@@ -658,6 +666,12 @@ a {
   will-change: transform;
 }
 
+/* Four lanes scrolling forever is real compositing work for photos nobody is
+   looking at. The marquee pauses itself once it leaves the viewport. */
+.gallery-marquee.is-paused .gallery-lane-track {
+  animation-play-state: paused;
+}
+
 /* The trailing pad makes one copy exactly half the track height, so a
    -50% translate lands on a pixel-identical frame. Without it the
    inter-set gap would make the loop visibly jump. */
@@ -729,7 +743,7 @@ a {
 /* Mobile: 2 lanes with bigger photos so they read clearly */
 @media (max-width: 640px) {
   .gallery-section {
-    padding-bottom: 76px;
+    padding-bottom: var(--section-space);
   }
 
   .gallery-marquee {
@@ -816,7 +830,6 @@ a {
 .overview-decor {
   filter: blur(14px);
   height: auto;
-  mix-blend-mode: multiply;
   opacity: 0.14;
   pointer-events: none;
   position: absolute;
@@ -850,7 +863,7 @@ a {
 .timeline-content {
   margin: 0 auto;
   max-width: 1180px;
-  padding: 84px 32px 110px;
+  padding: var(--section-space) 32px;
   position: relative;
   text-align: center;
   width: 100%;
@@ -889,7 +902,7 @@ a {
   position: absolute;
   top: 14px;
   transition: width 120ms cubic-bezier(0.1, 0.8, 0.3, 1);
-  width: calc(83.34% * (var(--line-progress, 0%) / 100));
+  width: calc(83.34% * var(--line-progress, 0));
   z-index: 0;
 }
 
@@ -1087,7 +1100,6 @@ a {
 .timeline-decor {
   filter: blur(12px);
   height: auto;
-  mix-blend-mode: multiply;
   opacity: 0.2;
   position: absolute;
   top: 40%;
@@ -1109,7 +1121,6 @@ a {
 
 .categories-section {
   background: #fff;
-  margin-top: 32px;
   overflow: hidden;
   position: relative;
   z-index: 1;
@@ -1118,7 +1129,7 @@ a {
 .categories-content {
   margin: 0 auto;
   max-width: 1440px;
-  padding: 80px 0 34px;
+  padding: var(--section-space) 0;
   position: relative;
   text-align: center;
   z-index: 1;
@@ -1150,6 +1161,11 @@ a {
 }
 
 .category-track {
+  /* align-items: center stops the cross-axis stretch. A stretched replaced
+     element throws away its flex basis and takes its width from the stretched
+     height instead, which made every card far wider than 80vw and pushed the
+     spotlighted card off centre. */
+  align-items: center;
   display: flex;
   gap: 16px;
   height: 100%;
@@ -1162,15 +1178,17 @@ a {
 }
 
 .category-card {
-  flex: 0 0 min(80vw, 1120px);
+  aspect-ratio: 1302 / 641;
+  flex: 0 0 auto;
   height: auto;
+  max-height: 100%;
   object-fit: contain;
   pointer-events: none;
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), filter 0.55s ease;
   user-select: none;
   -webkit-user-drag: none;
-  width: 100%;
+  width: min(80vw, 1120px);
 }
 
 .category-card:not(.is-active) {
@@ -1275,7 +1293,7 @@ a {
   margin: 0 auto;
   max-width: 1180px;
   min-height: 760px;
-  padding: 80px 32px;
+  padding: var(--section-space) 32px;
   position: relative;
 }
 
@@ -1345,14 +1363,13 @@ a {
   justify-content: center;
   min-height: 560px;
   overflow: visible;
-  padding: 100px 24px;
+  padding: var(--section-space) 24px;
   position: relative;
 }
 
 .sponsor-decor {
   filter: blur(14px);
   height: auto;
-  mix-blend-mode: multiply;
   opacity: 0.18;
   pointer-events: none;
   position: absolute;
@@ -1470,7 +1487,7 @@ a {
   justify-content: space-between;
   margin: 0 auto;
   max-width: 1240px;
-  padding: 70px 32px 80px;
+  padding: var(--section-space) 32px;
   position: relative;
   z-index: 1;
 }
@@ -1542,7 +1559,8 @@ a {
   padding: 0;
 }
 
-.footer-links a {
+.footer-links a,
+.footer-links-static span {
   color: #666;
   font-size: 14px;
   text-decoration: none;
@@ -1588,7 +1606,7 @@ a {
 /* Download Resource Section */
 .download-resource-section {
   background-color: #fff;
-  padding: 40px 32px 100px;
+  padding: var(--section-space) 32px;
   position: relative;
   width: 100%;
   z-index: 1;
@@ -2202,7 +2220,7 @@ a {
     background: linear-gradient(180deg, #ed1c24, #ffca28);
     border-radius: 999px;
     box-shadow: 0 0 8px rgba(237, 28, 36, 0.4);
-    height: calc((100% - 28px) * (var(--line-progress, 0%) / 100));
+    height: calc((100% - 28px) * var(--line-progress, 0));
     left: 13px;
     position: absolute;
     top: 14px;
@@ -2276,6 +2294,11 @@ a {
 
   .category-carousel {
     height: 40.5vw;
+    /* The card keeps its 1302:641 ratio, so on a phone it is far shorter than
+       the desktop min-height. Without this the carousel box kept 280px of
+       height and the spotlighted card floated in the middle of it with dead
+       space above and below. */
+    min-height: 0;
   }
 
   .category-track {
@@ -2283,7 +2306,7 @@ a {
   }
 
   .category-card {
-    flex-basis: 80vw;
+    width: 80vw;
   }
 
   .category-controls {
@@ -2469,7 +2492,7 @@ a {
   .footer-container {
     flex-direction: column;
     gap: 36px;
-    padding: 50px 24px 60px;
+    padding: var(--section-space) 24px;
   }
 
   .footer-col-brand,
@@ -2942,4 +2965,60 @@ body.hero-idle .hero-decor-right {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   Shared dramatic drop
+   The score gate countdown and the "team not registered" page both bring
+   their content in with the same vertical speed lines and motion blur, so the
+   effect lives here once instead of in each component. Opt in by adding
+   `is-dropping` to the positioned parent and rendering `.drop-streak` spans
+   inside `.drop-streaks`.
+   ========================================================================== */
+
+.drop-streaks {
+  inset: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+}
+
+.drop-streak {
+  background: linear-gradient(
+    180deg,
+    rgba(201, 7, 15, 0) 0%,
+    rgba(201, 7, 15, 0.55) 45%,
+    rgba(237, 28, 36, 0.35) 70%,
+    rgba(201, 7, 15, 0) 100%
+  );
+  filter: blur(1.5px);
+  height: 140%;
+  left: var(--drop-x);
+  opacity: 0;
+  position: absolute;
+  top: -20%;
+  transform: scaleY(0.1);
+  transform-origin: top center;
+  width: var(--drop-weight, 3px);
+}
+
+.is-dropping .drop-streaks {
+  animation: dropStreaksIn 160ms ease both;
+}
+
+.is-dropping .drop-streak {
+  animation: dropStreakFall var(--drop-duration, 600ms)
+    cubic-bezier(0.5, 0, 0.9, 0.35) var(--drop-delay, 0ms) both;
+}
+
+@keyframes dropStreaksIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes dropStreakFall {
+  0% { opacity: 0; transform: scaleY(0.08) translateY(-12%); }
+  30% { opacity: var(--drop-alpha, 1); }
+  100% { opacity: 0; transform: scaleY(1.1) translateY(22%); }
 }

@@ -1,50 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
+import { findTeamByNim, type Criterion } from "./teamScores";
+import { TeamNotFound } from "./TeamNotFound";
 import styles from "./TeamScore.module.css";
-
-const criteria = [
-  {
-    title: "Format dan Structure of Writing",
-    weight: "5%",
-    score: "92.5",
-    feedback: "The structure is well-organized and easy to follow. However, there are a few parts that could be more concise and focused on the main points.",
-  },
-  {
-    title: "Problem Urgency",
-    weight: "25%",
-    score: "88.0",
-    feedback: "The problem is clearly identified and the proposed solution addresses an important need.",
-  },
-  {
-    title: "Creativity and Innovation",
-    weight: "30%",
-    score: "93.5",
-    feedback: "The idea presents a fresh approach and demonstrates strong product thinking.",
-  },
-  {
-    title: "Video Demo",
-    weight: "20%",
-    score: "91.0",
-    feedback: "The demo is clear, smooth, and communicates the core value of the solution effectively.",
-  },
-];
 
 function AnimatedCriterionRow({
   criterion,
   start,
   delay,
 }: {
-  criterion: {
-    title: string;
-    weight: string;
-    score: string;
-    feedback: string;
-  };
+  criterion: Criterion;
   start: boolean;
   delay: number;
 }) {
@@ -103,14 +74,27 @@ function AnimatedCriterionRow({
 }
 
 export function TeamScore() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const heroRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [animatedScore, setAnimatedScore] = useState(0);
   const [isFinalScoreDone, setIsFinalScoreDone] = useState(false);
 
+  const nimQuery = (searchParams.get("nim") ?? searchParams.get("id"))?.trim() ?? "";
+  const record = useMemo(() => findTeamByNim(nimQuery), [nimQuery]);
+
+  // Nothing to look up without a NIM, so send the visitor back to the form
+  // instead of rendering an empty score page.
+  useEffect(() => {
+    if (!nimQuery) {
+      router.replace("/rankings");
+    }
+  }, [nimQuery, router]);
+
   useEffect(() => {
     const element = heroRef.current;
-    if (!element) return;
+    if (!element || !record) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -124,12 +108,12 @@ export function TeamScore() {
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [record]);
 
   useEffect(() => {
-    if (!isVisible) return;
+    if (!isVisible || !record) return;
 
-    const targetScore = 91.4;
+    const targetScore = record.totalScore;
     const duration = 2000;
     let startTimestamp: number | null = null;
     let animId: number;
@@ -156,7 +140,14 @@ export function TeamScore() {
       clearTimeout(timer);
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [isVisible]);
+  }, [isVisible, record]);
+
+  if (!record) {
+    if (!nimQuery) return null;
+    return <TeamNotFound nim={nimQuery} />;
+  }
+
+  const { teamName, category, criteria } = record;
 
   return (
     <>
@@ -179,9 +170,8 @@ export function TeamScore() {
             </Link>
             <article className={styles.scoreCard}>
               <div>
-                <h1 id="team-score-title">Mas Asix</h1>
-                <p>Innovation</p>
-                <p className={styles.teamMeta}>Tim Mas Asix - Finalis ADIKARA 2026</p>
+                <h1 id="team-score-title">{teamName}</h1>
+                <p>{category}</p>
               </div>
               <div className={styles.finalScore}>
                 <span>Final Score</span>

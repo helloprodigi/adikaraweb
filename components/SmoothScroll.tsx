@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 // Two values drive the whole thing:
 //
@@ -21,27 +22,56 @@ import { useEffect } from "react";
 // snapping straight to the input. 0.08 settles in roughly 400ms.
 const SMOOTHING = 0.08;
 const SETTLE_DISTANCE = 0.5; // px
+// A glide is over once this long has passed without new input. Without this
+// the loop can outlive its gesture: a route change replaces the document, the
+// browser clamps the new page to its own (shorter) height, and the loop keeps
+// easing towards a target that belonged to the old page, pinning the new page
+// at the bottom. The value only has to outlast the easing tail, so a real
+// gesture still lands on its target; the scroll listener below is what actually
+// catches a route change, and it reacts on the first scroll event.
+const GESTURE_TIMEOUT = 900; // ms
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 export function SmoothScroll() {
+  // Re-keyed on every route change so each page starts from the top with a
+  // freshly measured scroll range, and no leftover target from the page the
+  // visitor just left.
+  const pathname = usePathname();
+
   useEffect(() => {
     // Reduced motion: no listeners attached, native scrolling only.
     if (prefersReducedMotion()) return;
 
-    let targetScrollY = window.scrollY;
+    let targetScrollY = 0;
     let frame = 0;
     let lastTime = 0;
     let maxScroll = 0;
     let hoveringNativeScroll = false;
+    let lastInputAt = performance.now();
+    // The last offset this loop asked the browser for, used to tell its own
+    // scrolling apart from scrolling it did not cause.
+    let lastAppliedTop = 0;
 
+    // Reading scrollHeight forces a synchronous layout. Doing it on every
+    // wheel event meant each wheel tick threw away the frame the page had
+    // just painted. It is cached instead and refreshed only when the page
+    // can actually have changed height.
     const measure = () => {
       maxScroll = Math.max(
         0,
         document.documentElement.scrollHeight - window.innerHeight
       );
+    };
+
+    const stop = () => {
+      if (frame !== 0) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      lastTime = 0;
     };
 
     // Scale the factor by elapsed time so the feel matches at 60Hz and
@@ -59,9 +89,15 @@ export function SmoothScroll() {
     const tick = (time: number) => {
       // Anything scrolling on its own owns the wheel while hovered, and the
       // page must not keep drifting towards a stale target underneath.
-      if (hoveringNativeScroll) {
-        frame = 0;
-        lastTime = 0;
+      if (hoveringNativeScroll || document.hidden) {
+        stop();
+        targetScrollY = window.scrollY;
+        return;
+      }
+
+      // The gesture is over, so whatever distance is left is stale.
+      if (time - lastInputAt > GESTURE_TIMEOUT) {
+        stop();
         targetScrollY = window.scrollY;
         return;
       }
@@ -71,24 +107,25 @@ export function SmoothScroll() {
       const distance = targetScrollY - currentScrollY;
 
       if (Math.abs(distance) < SETTLE_DISTANCE) {
-        frame = 0;
-        lastTime = 0;
+        stop();
+        targetScrollY = currentScrollY;
         return;
       }
+
+      const nextTop = currentScrollY + distance * SMOOTHING * scale;
 
       // "instant" bypasses the CSS `scroll-behavior: smooth` on <html>.
       // Letting each frame start its own tween would compound the lag into
       // something sluggish. Anchor links still smooth because the browser
       // drives those.
-      window.scrollTo({
-        top: currentScrollY + distance * SMOOTHING * scale,
-        behavior: "instant",
-      });
+      lastAppliedTop = nextTop;
+      window.scrollTo({ top: nextTop, behavior: "instant" });
 
       frame = requestAnimationFrame(tick);
     };
 
     const start = () => {
+      lastInputAt = performance.now();
       if (frame === 0) frame = requestAnimationFrame(tick);
     };
 
@@ -108,7 +145,6 @@ export function SmoothScroll() {
       );
       if (scrollRegion) return;
       event.preventDefault();
-      measure();
 
       // deltaMode 1 = lines, 2 = pages. Normalise to pixels.
       const scale =
@@ -170,7 +206,6 @@ export function SmoothScroll() {
       }
 
       event.preventDefault();
-      measure();
       if (frame === 0) targetScrollY = window.scrollY;
       targetScrollY += delta;
       targetScrollY = Math.min(Math.max(targetScrollY, 0), maxScroll);
@@ -178,10 +213,26 @@ export function SmoothScroll() {
     };
 
     // Any scroll this loop did not cause (scrollbar drag, anchor jump,
-    // focus scrolling, find-in-page) has to adopt the new position, or the
-    // next frame would pull the page back to where it used to be.
+    // focus scrolling, find-in-page, a route change swapping the document)
+    // has to adopt the new position, or the next frame would pull the page
+    // back to where it used to be.
     const handleScroll = () => {
-      if (frame === 0) targetScrollY = window.scrollY;
+      const y = window.scrollY;
+
+      // Something outside this loop moved the page a long way while the loop
+      // was still easing. Adopt it and stop, otherwise the glide would drag
+      // the new position back towards a target from before the jump.
+      const movedByOther =
+        Math.abs(y - lastAppliedTop) > 2 && Math.abs(y - targetScrollY) > 24;
+
+      if (movedByOther) {
+        stop();
+        measure();
+        targetScrollY = y;
+        return;
+      }
+
+      if (frame === 0) targetScrollY = y;
     };
 
     const handleResize = () => {
@@ -222,6 +273,27 @@ export function SmoothScroll() {
     measure();
     targetScrollY = window.scrollY;
 
+    // Every page change starts at the top, instantly. This runs on mount and
+    // again on each route change, which also re-measures the new page and
+    // drops any target left over from the page just left.
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    targetScrollY = 0;
+    lastAppliedTop = 0;
+    measure();
+
+    // Late-loading images, webfonts and expanding sections all change how far
+    // the page can scroll. A resize observer on the document keeps the cached
+    // bound correct without polling layout on every input event.
+    const sizeObserver = new ResizeObserver(() => {
+      const previousMax = maxScroll;
+      measure();
+      if (frame === 0) return;
+      if (targetScrollY > previousMax) {
+        targetScrollY = Math.min(targetScrollY, maxScroll);
+      }
+    });
+    sizeObserver.observe(document.body);
+
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -231,6 +303,7 @@ export function SmoothScroll() {
 
     return () => {
       if (frame !== 0) cancelAnimationFrame(frame);
+      sizeObserver.disconnect();
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll);
@@ -238,7 +311,7 @@ export function SmoothScroll() {
       window.removeEventListener("pointerover", handlePointerOver);
       window.removeEventListener("pointerout", handlePointerOut);
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

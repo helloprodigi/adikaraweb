@@ -34,22 +34,22 @@ const emptySummary: SummaryStat[] = [
   {
     label: "Total Form",
     value: null,
-    caption: "Semua pendaftaran (individu + tim)",
+    caption: "Individuals and Teams",
   },
   {
     label: "Form Individu",
     value: null,
-    caption: "Pendaftar kategori individu",
+    caption: "Individuals and Teams",
   },
   {
     label: "Form Tim",
     value: null,
-    caption: "Pendaftaran dengan format tim",
+    caption: "Individuals and Teams",
   },
   {
     label: "Estimasi Peserta",
     value: null,
-    caption: "Individu + seluruh anggota tim",
+    caption: "Individuals and Teams",
     featured: true,
   },
 ];
@@ -75,22 +75,22 @@ const statsByYear: Record<number, YearData> = {
       {
         label: "Total Form",
         value: 644,
-        caption: "Semua pendaftaran (individu + tim)",
+        caption: "Individuals and Teams",
       },
       {
         label: "Form Individu",
         value: 298,
-        caption: "Pendaftar kategori individu",
+        caption: "Individuals and Teams",
       },
       {
         label: "Form Tim",
         value: 346,
-        caption: "Pendaftaran dengan format tim",
+        caption: "Individuals and Teams",
       },
       {
         label: "Estimasi Peserta",
         value: 1145,
-        caption: "Individu + seluruh anggota tim",
+        caption: "Individuals and Teams",
         featured: true,
       },
     ],

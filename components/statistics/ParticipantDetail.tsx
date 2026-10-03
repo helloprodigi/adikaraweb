@@ -106,7 +106,7 @@ export function ParticipantDetail() {
       className={`${styles.contentSection} ${isVisible ? styles.sectionVisible : ""}`}
       aria-labelledby="participant-details-title"
     >
-      <h2 id="participant-details-title">Detail Angkatan &amp; Prodi (berdasarkan form)</h2>
+      <h2 id="participant-details-title">Participant Details</h2>
       <div className={styles.detailsGrid}>
         <DetailCard
           title="Angkatan"

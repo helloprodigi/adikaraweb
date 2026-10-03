@@ -1,5 +1,10 @@
+import { Suspense } from "react";
 import { TeamScore } from "@/components/team-score/TeamScore";
 
 export default function TeamScorePage() {
-  return <TeamScore />;
+  return (
+    <Suspense fallback={null}>
+      <TeamScore />
+    </Suspense>
+  );
 }

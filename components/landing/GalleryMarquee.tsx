@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { onViewportEnter } from "@/components/scrollTicker";
 
 // Deterministic PRNG so server and client render identical markup.
 function seeded(index: number, salt: number) {
@@ -38,6 +40,19 @@ function buildColumns(images: string[], columnCount: number): Tile[][] {
 }
 
 export function GalleryMarquee({ images }: { images: string[] }) {
+  const marqueeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const marquee = marqueeRef.current;
+    if (!marquee) return;
+
+    return onViewportEnter(
+      marquee,
+      () => marquee.classList.remove("is-paused"),
+      () => marquee.classList.add("is-paused")
+    );
+  }, []);
+
   if (images.length === 0) return null;
 
   const columns = buildColumns(images, COLUMN_COUNT);
@@ -45,6 +60,7 @@ export function GalleryMarquee({ images }: { images: string[] }) {
   return (
     <div
       className="gallery-marquee"
+      ref={marqueeRef}
       aria-label="ADIKARA 2026 gallery"
       onContextMenu={(event) => event.preventDefault()}
       onDragStart={(event) => event.preventDefault()}

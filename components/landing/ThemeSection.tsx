@@ -51,17 +51,19 @@ export function ThemeSection() {
     >
       <Image
         className="theme-card theme-card-left"
-        src="/landing/adikara-card.svg"
+        src="/landing/adikara-card.webp"
         alt=""
-        width={434}
-        height={454}
+        width={868}
+        height={908}
+        sizes="(max-width: 900px) 60vw, 32vw"
       />
       <Image
         className="theme-card theme-card-right"
-        src="/landing/adikara-card.svg"
+        src="/landing/adikara-card.webp"
         alt=""
-        width={434}
-        height={454}
+        width={868}
+        height={908}
+        sizes="(max-width: 900px) 60vw, 32vw"
       />
 
       <div className="theme-content">

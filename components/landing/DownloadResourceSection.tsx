@@ -95,10 +95,11 @@ export function DownloadResourceSection() {
         <div className="download-resource-card">
           <Image
             className="download-resource-bg-desktop"
-            src="/landing/download-resource-card.svg"
+            src="/landing/download-resource-card.webp"
             alt=""
             width={1582}
             height={443}
+            sizes="(max-width: 1400px) 100vw, 1280px"
             priority
           />
 

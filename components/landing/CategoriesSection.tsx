@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 
 const categoryCards = [
@@ -17,6 +17,32 @@ const categoryCards = [
     src: "/landing/card-categories/card-competitiveprogramming.webp",
   },
 ];
+
+// Fifteen copies of the carousel exist at once and only two of them change
+// state per slide. Memoising keeps a slide change to two image updates instead
+// of fifteen, which is what used to cause a periodic hitch while scrolling.
+const CategoryCard = memo(function CategoryCard({
+  card,
+  isActive,
+  priority,
+}: {
+  card: (typeof categoryCards)[number];
+  isActive: boolean;
+  priority: boolean;
+}) {
+  return (
+    <Image
+      className={`category-card ${isActive ? "is-active" : ""}`}
+      src={card.src}
+      alt={`${card.name} competition category`}
+      width={1302}
+      height={641}
+      priority={priority}
+      draggable={false}
+      sizes="(max-width: 680px) 80vw, (max-width: 1400px) 80vw, 1120px"
+    />
+  );
+});
 
 export function CategoriesSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -44,18 +70,27 @@ export function CategoriesSection() {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isAnimating, setIsAnimating] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [carouselWidth, setCarouselWidth] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const startXRef = useRef(0);
   const isPointerDownRef = useRef(false);
 
+  const [layout, setLayout] = useState({
+    cardWidth: 0,
+    gap: 16,
+    // Horizontal position of the visible centre, expressed in the track's own
+    // coordinates.
+    centreX: 0,
+  });
+
   const selectedIndex = ((activeIndex % categoryCards.length) + categoryCards.length) % categoryCards.length;
-  const cardWidth = Math.min(carouselWidth * 0.8, 1120);
-  const cardGap = carouselWidth < 680 ? 12 : 16;
-  const trackOffset = carouselWidth
-    ? carouselWidth / 2 - cardWidth / 2 - activeIndex * (cardWidth + cardGap)
+
+  const trackOffset = layout.cardWidth
+    ? layout.centreX -
+      layout.cardWidth / 2 -
+      activeIndex * (layout.cardWidth + layout.gap)
     : 0;
 
   const handleTrackTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
@@ -80,14 +115,61 @@ export function CategoriesSection() {
 
   useEffect(() => {
     const carousel = carouselRef.current;
-    if (!carousel) return;
+    const track = trackRef.current;
+    if (!carousel || !track) return;
 
-    const updateWidth = () => setCarouselWidth(carousel.clientWidth);
-    const observer = new ResizeObserver(updateWidth);
+    // The card size comes from the stylesheet, which changes with breakpoints
+    // (and used to disagree with the old hardcoded 80vw/16px guess). Measuring
+    // it means the spotlighted card lands dead centre at every width, whatever
+    // the CSS resolves to.
+    const measure = () => {
+      const card = track.firstElementChild as HTMLElement | null;
+      if (!card) return;
+
+      // offsetWidth is the laid-out width: unlike getBoundingClientRect it is
+      // not divided by the scale() on the inactive cards.
+      const cardWidth = card.offsetWidth;
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+
+      // Layout offsets, not getBoundingClientRect: the carousel is scaled
+      // slightly by its scroll reveal (scale(0.98) -> 1), and a transformed
+      // rect would report the carousel as narrower than it is laid out, which
+      // pushed the spotlight off centre by ~1% of the viewport.
+      let layoutLeft = 0;
+      let node: HTMLElement | null = carousel;
+      while (node) {
+        layoutLeft += node.offsetLeft;
+        node = node.offsetParent as HTMLElement | null;
+      }
+
+      // clientWidth excludes a classic scrollbar while the full-bleed carousel
+      // is sized in vw, so centring on the visible area keeps the card centred
+      // in what the visitor can actually see.
+      const centreX =
+        document.documentElement.clientWidth / 2 - (layoutLeft - window.scrollX);
+
+      setLayout((current) =>
+        current.cardWidth === cardWidth &&
+        current.gap === gap &&
+        current.centreX === centreX
+          ? current
+          : { cardWidth, gap, centreX }
+      );
+    };
+
+    const observer = new ResizeObserver(measure);
     observer.observe(carousel);
-    updateWidth();
+    observer.observe(track);
+    measure();
 
-    return () => observer.disconnect();
+    // Images decode after mount, so re-measure once they have settled.
+    const onLoad = () => measure();
+    window.addEventListener("load", onLoad);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("load", onLoad);
+    };
   }, []);
 
   useEffect(() => {
@@ -127,7 +209,11 @@ export function CategoriesSection() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
-    const threshold = 40;
+    // Scaled to the card so a swipe has to travel a real fraction of a card
+    // before the carousel commits to a step. On a phone that stops a small
+    // diagonal swipe from flicking to the next category while the visitor was
+    // trying to scroll the page.
+    const threshold = Math.max(48, layout.cardWidth * 0.16);
     if (dragOffset < -threshold) {
       setActiveIndex((currentIndex) => currentIndex + 1);
     } else if (dragOffset > threshold) {
@@ -160,20 +246,22 @@ export function CategoriesSection() {
           <div
             className={`category-track ${isAnimating && !isDragging ? "" : "no-transition"}`}
             onTransitionEnd={handleTrackTransitionEnd}
+            ref={trackRef}
             style={{ transform: `translate3d(${trackOffset + dragOffset}px, 0, 0)` } as CSSProperties}
           >
             {[...categoryCards, ...categoryCards, ...categoryCards].map((card, index) => (
-              <Image
-                className={`category-card ${
-                  index % categoryCards.length === selectedIndex ? "is-active" : ""
-                }`}
+              <CategoryCard
+                card={card}
+                // Only the middle copy can ever be on screen, so only it counts
+                // as the spotlight. Testing the modulo here would light up all
+                // three copies of the active category.
+                isActive={
+                  index >= middleStart &&
+                  index < middleStart + categoryCards.length &&
+                  index - middleStart === selectedIndex
+                }
                 key={`${card.name}-${index}`}
-                src={card.src}
-                alt={`${card.name} competition category`}
-                width={1302}
-                height={641}
                 priority={index === categoryCards.length}
-                draggable={false}
               />
             ))}
           </div>

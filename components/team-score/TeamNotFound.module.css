@@ -1,0 +1,109 @@
+.page {
+  align-items: center;
+  background: #fff;
+  color: #10142b;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family-sans);
+  gap: 44px;
+  justify-content: center;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 48px 24px;
+  position: relative;
+  text-align: center;
+}
+
+/* The block that falls in: everything lands together, one move, blurred on
+   the way down. Starts hidden so it cannot be seen before the drop starts. */
+.logsDrop {
+  animation: notFoundDropIn 760ms cubic-bezier(0.22, 0.8, 0.28, 1) both;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+@keyframes notFoundDropIn {
+  0% {
+    filter: blur(14px);
+    opacity: 0;
+    transform: translateY(-26vh) scale(1.04);
+  }
+  55% { filter: blur(3px); opacity: 1; }
+  100% {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Telkom and Prodigi sit side by side on top, with the Adikara emblem centred
+   underneath them as the focal mark. */
+.logos {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(26px, 4vw, 44px);
+  margin: 0 auto;
+  max-width: 720px;
+  width: 100%;
+}
+
+.partnerRow {
+  align-items: center;
+  display: flex;
+  gap: clamp(36px, 6vw, 76px);
+  justify-content: center;
+}
+
+.partnerRow img {
+  display: block;
+  height: clamp(26px, 3.2vw, 44px);
+  max-width: 100%;
+  width: auto;
+}
+
+/* The emblem is portrait, so it is sized by height and dominates the two
+   wordmarks above it. */
+.emblem {
+  display: block;
+  height: clamp(110px, 15vw, 176px);
+  width: auto;
+}
+
+.message {
+  color: #6b7082;
+  font-size: clamp(16px, 2.2vw, 20px);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 520px;
+}
+
+.message strong {
+  color: #c9070f;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 40px 16px;
+  }
+
+  .logsDrop {
+    gap: 32px;
+  }
+
+  .partnerRow {
+    gap: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logsDrop {
+    animation: none;
+  }
+}

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { onViewportEnter, subscribeToScroll } from "@/components/scrollTicker";
 import { useStatistics } from "./StatisticsContext";
 import { PLACEHOLDER, YEARS } from "./statsData";
 import styles from "./statistics.module.css";
@@ -102,16 +103,39 @@ export function RegistStatistic() {
   }, [year, isHeroVisible]);
 
   useEffect(() => {
-    const updateParallax = () => {
-      heroRef.current?.style.setProperty(
-        "--statistics-parallax",
-        `${Math.min(window.scrollY, 720)}px`
-      );
-    };
+    const hero = heroRef.current;
+    if (!hero) return;
 
-    updateParallax();
-    window.addEventListener("scroll", updateParallax, { passive: true });
-    return () => window.removeEventListener("scroll", updateParallax);
+    // The wings only move while the hero is on screen, so the scroll work is
+    // switched off entirely once it scrolls away.
+    let onScreen = true;
+    let lastOffset = -1;
+
+    const stopWatching = onViewportEnter(
+      hero,
+      () => {
+        onScreen = true;
+      },
+      () => {
+        onScreen = false;
+      },
+      "120px"
+    );
+
+    const unsubscribe = subscribeToScroll((scrollY) => {
+      if (!onScreen) return;
+
+      const offset = Math.min(scrollY, 720);
+      if (offset === lastOffset) return;
+      lastOffset = offset;
+
+      hero.style.setProperty("--statistics-parallax", `${offset}px`);
+    });
+
+    return () => {
+      stopWatching();
+      unsubscribe();
+    };
   }, []);
 
   return (
@@ -141,7 +165,7 @@ export function RegistStatistic() {
         <p className={styles.eyebrow}>ADIKARA</p>
         <h1 id="statistics-title">Registration Statistic</h1>
         <p className={styles.dataTimestamp}>
-          Data per 2 Oktober 2026, 16.12.25 WIB
+          Realtime data overview of all ADIKARA Participants.
         </p>
         <div className={styles.yearSelector} aria-label="Registration year">
           <button

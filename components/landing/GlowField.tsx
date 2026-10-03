@@ -36,11 +36,20 @@ export function GlowField() {
     let blobs: Blob[] = [];
     let raf = 0;
     let running = false;
+    let onScreen = true;
     let width = 0;
     let height = 0;
     let lastTime = 0;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
+    // The canvas covers the whole first screen and repaints itself with
+    // several full-width radial gradients. At display refresh rate that is a
+    // large amount of pixel work competing with scrolling for the same frame
+    // budget, and the field drifts so slowly that nobody can tell. Half rate
+    // and a lower backing resolution are visually indistinguishable and
+    // roughly quarter the cost.
+    const FRAME_INTERVAL = 1000 / 30;
 
     const makeBlobs = () => {
       const count = Math.max(4, Math.min(7, Math.round((width * height) / 220000)));
@@ -98,6 +107,13 @@ export function GlowField() {
     const loop = (time: number) => {
       if (!running) return;
 
+      // Skip the paint when the frame arrives too early, but keep advancing
+      // the drift so the motion stays continuous.
+      if (time - lastTime < FRAME_INTERVAL) {
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+
       const dt = Math.min(time - lastTime, 120);
       lastTime = time;
 
@@ -129,7 +145,7 @@ export function GlowField() {
     };
 
     const onVisibility = () => {
-      if (document.hidden) {
+      if (document.hidden || !onScreen) {
         stop();
       } else {
         start();
@@ -143,11 +159,23 @@ export function GlowField() {
       start();
     }
 
+    // Once the hero has scrolled away the glow is behind the fold, so the loop
+    // is parked instead of burning frames on content nobody can see.
+    const visibilityObserver = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        onVisibility();
+      },
+      { rootMargin: "120px" }
+    );
+    visibilityObserver.observe(canvas);
+
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       stop();
+      visibilityObserver.disconnect();
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVisibility);
     };

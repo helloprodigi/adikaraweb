@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { subscribeToScroll } from "@/components/scrollTicker";
 
 const timelineItems = [
   { title: "Kick Off", date: "5 Oktober 2026", start: "2026-10-05", end: "2026-10-05" },
@@ -59,7 +60,6 @@ function getPhaseStatus(
 
 export function TimelineSection() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [lineProgress, setLineProgress] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
 
   // Resolve "today" on the client so server and client markup match
@@ -70,29 +70,53 @@ export function TimelineSection() {
     return () => clearInterval(id);
   }, []);
 
-  // Scroll-driven timeline line progress
+  // Scroll-driven timeline line progress.
+  //
+  // The fill is a CSS length driven by a unitless custom property, so it is
+  // written straight to the element instead of through React state: state
+  // would re-render the whole section on every scroll frame.
   useEffect(() => {
-    const handleScroll = () => {
-      const track = trackRef.current;
-      if (!track) return;
+    const track = trackRef.current;
+    if (!track) return;
 
+    let top = 0;
+    let height = 0;
+    let lastPercent = -1;
+
+    const measure = () => {
       const rect = track.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-
-      // Calculate progress as user scrolls into track
-      const startPoint = windowHeight * 0.75;
-      const totalDistance = rect.height;
-
-      const currentProgress = (startPoint - rect.top) / totalDistance;
-      const clampedProgress = Math.min(Math.max(currentProgress, 0), 1);
-
-      setLineProgress(clampedProgress);
+      top = rect.top + window.scrollY;
+      height = rect.height;
     };
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+    const update = (scrollY: number, viewportHeight: number) => {
+      if (height === 0) return;
 
-    return () => window.removeEventListener("scroll", handleScroll);
+      const startPoint = viewportHeight * 0.75;
+      const progress = Math.min(Math.max((startPoint - (top - scrollY)) / height, 0), 1);
+      const percent = Math.round(progress * 100);
+
+      if (percent !== lastPercent) {
+        lastPercent = percent;
+        // Unitless 0..1 so the stylesheet can multiply it against a length.
+        track.style.setProperty("--line-progress", String(percent / 100));
+      }
+    };
+
+    measure();
+
+    const resizeObserver = new ResizeObserver(() => {
+      measure();
+      update(window.scrollY, window.innerHeight);
+    });
+    resizeObserver.observe(track);
+
+    const unsubscribe = subscribeToScroll(update);
+
+    return () => {
+      unsubscribe();
+      resizeObserver.disconnect();
+    };
   }, []);
 
   return (
@@ -121,18 +145,8 @@ export function TimelineSection() {
 
         <div className="timeline-track" ref={trackRef}>
           <div className="timeline-line-bg" aria-hidden="true" />
-          <div
-            className="timeline-line-progress"
-            aria-hidden="true"
-            style={
-              {
-                "--line-progress": `${lineProgress * 100}%`,
-              } as React.CSSProperties
-            }
-          />
-          {timelineItems.map((item, index) => {
-            const itemThreshold = index / (timelineItems.length - 1);
-            const isReached = lineProgress >= itemThreshold;
+          <div className="timeline-line-progress" aria-hidden="true" />
+          {timelineItems.map((item) => {
             const status: PhaseStatus = now
               ? getPhaseStatus(item, now)
               : "upcoming";
@@ -140,9 +154,7 @@ export function TimelineSection() {
 
             return (
               <div
-                className={`timeline-item ${
-                  isReached ? "is-reached" : ""
-                } ${isCurrent ? "is-current" : ""} phase-${status}`}
+                className={`timeline-item ${isCurrent ? "is-current" : ""} phase-${status}`}
                 key={item.title}
               >
                 <span className="timeline-node" aria-hidden="true" />

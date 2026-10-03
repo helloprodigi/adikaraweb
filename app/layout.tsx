@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Google_Sans } from "next/font/google";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { ScoreGateProvider } from "@/components/rankings/ScoreGateProvider";
 import "./globals.css";
 
 const googleSans = Google_Sans({
@@ -62,16 +63,27 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
+      // The font variable class names are identical in the SSR HTML and in the
+      // RSC payload, so this is not about the fonts: anything that touches
+      // <html> before React hydrates (browser extensions, dev tooling, saved
+      // user styles) makes React diff a className it can never match. React
+      // only honours this on the element that mismatches, which is <html>.
+      suppressHydrationWarning
       className={`${googleSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script
           dangerouslySetInnerHTML={{
+            // Jumps to the top before the first paint on a reload. Deliberately
+            // touches no attributes: mutating <html> here would change the DOM
+            // before React hydrates and cause an attribute mismatch.
             __html: "window.scrollTo(0, 0);",
           }}
         />
-        <SmoothScroll />
-        {children}
+        <ScoreGateProvider>
+          <SmoothScroll />
+          {children}
+        </ScoreGateProvider>
       </body>
     </html>
   );

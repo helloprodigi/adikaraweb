@@ -1,20 +1,23 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 const quickLinks = [
-  { label: "About Us", href: "#theme" },
-  { label: "Timeline", href: "#timeline" },
-  { label: "Competitions", href: "#categories" },
+  { label: "Competition", href: "/#competition" },
+  { label: "Timeline", href: "/#timeline" },
+  { label: "Resource", href: "/#download-resource" },
+  { label: "Statistics", href: "/statistics" },
+  { label: "Rankings", href: "/rankings" },
 ];
 
-const categoriesLinks = [
-  { label: "Competitive Programming", href: "#categories" },
-  { label: "Data Mining", href: "#categories" },
-  { label: "Cyber Security", href: "#categories" },
-  { label: "Entrepreneurship", href: "#categories" },
-  { label: "Innovation", href: "#categories" },
+const categoriesLabels = [
+  "Competitive Programming",
+  "Data Mining",
+  "Cyber Security",
+  "Entrepreneurship",
+  "Innovation",
 ];
 
 export function Footer() {
@@ -44,14 +47,18 @@ export function Footer() {
         <div className="footer-container">
           {/* Column 1: Brand & Info */}
           <div className="footer-col footer-col-brand">
-            <a className="footer-brand" href="#overview" aria-label="Adikara 2026 home">
+            <Link className="footer-brand" href="/" aria-label="Adikara 2026 home">
               <Image
-                src="/navbar/adikara-logo.svg"
+                src="/navbar/adikara-logo.webp"
                 alt="ADIKARA 2026 - Lead With Character, Shape The Future."
                 width={260}
                 height={66}
+                sizes="(max-width: 900px) 130px, 240px"
+                // Stated here as well as in CSS so the aspect ratio stays intact
+                // when the width is overridden (next/image warns otherwise).
+                style={{ height: "auto" }}
               />
-            </a>
+            </Link>
 
             <p className="footer-description">
               Informatics Students&apos; Digital Creative and Innovation Competition.
@@ -106,7 +113,7 @@ export function Footer() {
             <ul className="footer-links">
               {quickLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href}>{link.label}</a>
+                  <Link href={link.href}>{link.label}</Link>
                 </li>
               ))}
             </ul>
@@ -115,10 +122,10 @@ export function Footer() {
           {/* Column 3: Categories */}
           <div className="footer-col">
             <h3 className="footer-col-title">Categories</h3>
-            <ul className="footer-links">
-              {categoriesLinks.map((link) => (
-                <li key={link.label}>
-                  <a href={link.href}>{link.label}</a>
+            <ul className="footer-links footer-links-static">
+              {categoriesLabels.map((label) => (
+                <li key={label}>
+                  <span>{label}</span>
                 </li>
               ))}
             </ul>
@@ -138,10 +145,11 @@ export function Footer() {
 
       <Image
         className="footer-bg-card"
-        src="/landing/adikara-card.svg"
+        src="/landing/adikara-card.webp"
         alt=""
-        width={434}
-        height={454}
+        width={868}
+        height={908}
+        sizes="(max-width: 900px) 60vw, 32vw"
       />
 
       {/* Bottom Red Bar */}

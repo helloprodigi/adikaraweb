@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { subscribeToScroll } from "@/components/scrollTicker";
 
 const navigationItems = [
   { label: "Overview", href: "/" },
@@ -22,23 +23,35 @@ export function Navbar() {
     setIsOpen(false);
   };
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-  }, [pathname]);
+  // Resetting the scroll on navigation is handled centrally by SmoothScroll,
+  // which owns the glide. A second scrollTo here would only fight it.
 
   useEffect(() => {
     const progressInner = progressRef.current;
 
-    let ticking = false;
+    // The scrollbar progress bar needs the full page height. Reading it every
+    // frame forced a synchronous layout on each scroll tick, so it is cached
+    // and refreshed only when the page actually changes height.
+    let maxScroll = 0;
+    const measure = () => {
+      maxScroll = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+    };
 
-    const update = () => {
-      const y = window.scrollY;
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      const progress = max > 0 ? Math.min(y / max, 1) : 0;
+    measure();
+    const sizeObserver = new ResizeObserver(measure);
+    sizeObserver.observe(document.body);
+
+    const update = (y: number) => {
+      if (maxScroll <= 0) measure();
+
+      const progress = maxScroll > 0 ? Math.min(y / maxScroll, 1) : 0;
 
       if (progressInner) {
-        progressInner.style.transform = `scaleX(${progress})`;
+        const rounded = Math.round(progress * 1000) / 1000;
+        progressInner.style.transform = `scaleX(${rounded})`;
       }
 
       const nextScrolled = y > 24;
@@ -46,22 +59,13 @@ export function Navbar() {
         scrolledRef.current = nextScrolled;
         setIsScrolled(nextScrolled);
       }
-
-      ticking = false;
     };
 
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    update();
+    const unsubscribe = subscribeToScroll(update);
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      unsubscribe();
+      sizeObserver.disconnect();
     };
   }, []);
 
@@ -89,11 +93,15 @@ export function Navbar() {
 
         <Link className="brand" href="/" aria-label="Adikara 2026 home">
           <Image
-            src="/navbar/adikara-logo.svg"
+            src="/navbar/adikara-logo.webp"
             alt="Adikara Logo"
             width={286}
             height={72}
+            sizes="(max-width: 900px) 130px, 240px"
             priority
+            // Mirrors the CSS (.brand img is sized by width) so next/image can
+            // see that the aspect ratio is preserved.
+            style={{ height: "auto" }}
           />
         </Link>
 
@@ -128,11 +136,18 @@ export function Navbar() {
       <aside className={`mobile-sidebar ${isOpen ? "is-open" : ""}`} aria-label="Mobile navigation">
         <div className="sidebar-header">
           <Image
-            src="/navbar/adikara-logo.svg"
+            className="brand-logo"
+            src="/navbar/adikara-logo.webp"
             alt="Adikara Logo"
-            width={150}
-            height={38}
+            width={286}
+            height={72}
+            priority
+            sizes="(max-width: 900px) 130px, 240px"
+            // Mirrors the CSS (.brand img is sized by width) so next/image can
+            // see that the aspect ratio is preserved.
+            style={{ height: "auto" }}
           />
+
           <button
             className="sidebar-close"
             onClick={() => setIsOpen(false)}
