@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 // TODO: ganti href dengan URL asli tiap resource.
 const RESOURCES = [
   { label: "Guidebook ADIKARA 2026", href: "#guidebook", external: false },
-  { label: "Competition Rules", href: "#rules", external: false },
   { label: "Template Proposal", href: "#template-proposal", external: false },
   { label: "Twibbon & Caption", href: "#twibbon-caption", external: false },
   {
@@ -24,7 +23,7 @@ function FileIcon() {
   );
 }
 
-/* Chain link: marks this as a link out to another site, not a download. */
+/* Chain link: marks this as a link out to another site, i.e. "kunjungi". */
 function ExternalLinkIcon() {
   return (
     <svg
@@ -40,25 +39,6 @@ function ExternalLinkIcon() {
       <path d="M15 3h6v6" />
       <path d="M10 14 21 3" />
       <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-    </svg>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
 }
@@ -117,9 +97,7 @@ export function DownloadResourceSection() {
             >
               {RESOURCES.map((resource) => (
                 <a
-                  className={`resource-button ${
-                    resource.external ? "resource-button-external" : ""
-                  }`}
+                  className="resource-button"
                   href={resource.href}
                   key={resource.label}
                   target="_blank"
@@ -131,13 +109,8 @@ export function DownloadResourceSection() {
                     </span>
                     <span className="resource-button-label">{resource.label}</span>
                   </div>
-                  <span
-                    className={
-                      resource.external ? "link-circle" : "download-circle"
-                    }
-                    aria-hidden="true"
-                  >
-                    {resource.external ? <ExternalLinkIcon /> : <DownloadIcon />}
+                  <span className="link-circle" aria-hidden="true">
+                    <ExternalLinkIcon />
                   </span>
                 </a>
               ))}

@@ -69,9 +69,10 @@ export function SponsorSection() {
 
         <a
           className="button sponsor-button"
-          href="https://helloprodigi.pro/PendaftaranAdikara2026"
+          href="https://wa.me/6282249278506"
           target="_blank"
           rel="noopener noreferrer"
+          aria-label="Become a Sponsor via WhatsApp +62 822-4927-8506"
         >
           Become a Sponsor
         </a>
