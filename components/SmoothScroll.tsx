@@ -270,15 +270,55 @@ export function SmoothScroll() {
       hoveringNativeScroll = false;
     };
 
+    const handleAnchorClick = (event: MouseEvent) => {
+      const anchor = (event.target as HTMLElement | null)?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+
+      const hashIndex = href.indexOf("#");
+      if (hashIndex !== -1) {
+        const hash = href.substring(hashIndex);
+        const path = href.substring(0, hashIndex);
+        if (!path || path === "/" || path === window.location.pathname) {
+          const id = hash.replace("#", "");
+          const target = document.getElementById(id);
+          if (target) {
+            measure();
+            const rect = target.getBoundingClientRect();
+            const top = window.scrollY + rect.top;
+            targetScrollY = Math.min(Math.max(top, 0), maxScroll);
+            start();
+          }
+        }
+      }
+    };
+
+    const scrollToHash = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      const id = hash.replace("#", "");
+      const target = document.getElementById(id);
+      if (target) {
+        measure();
+        const rect = target.getBoundingClientRect();
+        const top = window.scrollY + rect.top;
+        targetScrollY = Math.min(Math.max(top, 0), maxScroll);
+        start();
+      }
+    };
+
     measure();
     targetScrollY = window.scrollY;
 
-    // Every page change starts at the top, instantly. This runs on mount and
-    // again on each route change, which also re-measures the new page and
-    // drops any target left over from the page just left.
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-    targetScrollY = 0;
-    lastAppliedTop = 0;
+    if (window.location.hash) {
+      setTimeout(scrollToHash, 100);
+      setTimeout(scrollToHash, 350);
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      targetScrollY = 0;
+      lastAppliedTop = 0;
+    }
     measure();
 
     // Late-loading images, webfonts and expanding sections all change how far
@@ -300,6 +340,8 @@ export function SmoothScroll() {
     window.addEventListener("resize", handleResize);
     window.addEventListener("pointerover", handlePointerOver, { passive: true });
     window.addEventListener("pointerout", handlePointerOut, { passive: true });
+    window.addEventListener("click", handleAnchorClick);
+    window.addEventListener("hashchange", scrollToHash);
 
     return () => {
       if (frame !== 0) cancelAnimationFrame(frame);
@@ -310,6 +352,8 @@ export function SmoothScroll() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("pointerover", handlePointerOver);
       window.removeEventListener("pointerout", handlePointerOut);
+      window.removeEventListener("click", handleAnchorClick);
+      window.removeEventListener("hashchange", scrollToHash);
     };
   }, [pathname]);
 
