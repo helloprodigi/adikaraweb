@@ -161,10 +161,30 @@
 
 .yearArrowLeft {
   transform: scaleX(1);
+  animation: yearArrowBopLeft 1.6s ease-in-out infinite;
 }
 
 .yearArrowRight {
   transform: scaleX(-1);
+  animation: yearArrowBopRight 1.6s ease-in-out infinite;
+}
+
+@keyframes yearArrowBopLeft {
+  0%, 100% {
+    transform: scaleX(1) translateX(0);
+  }
+  50% {
+    transform: scaleX(1) translateX(-6px);
+  }
+}
+
+@keyframes yearArrowBopRight {
+  0%, 100% {
+    transform: scaleX(-1) translateX(0);
+  }
+  50% {
+    transform: scaleX(-1) translateX(-6px);
+  }
 }
 
 .summarySection,

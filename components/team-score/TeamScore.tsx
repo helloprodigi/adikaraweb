@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { findTeamByNim, type Criterion } from "./teamScores";
 import { TeamNotFound } from "./TeamNotFound";
+import { JordanEasterEgg } from "@/components/easter-egg/JordanEasterEgg";
 import styles from "./TeamScore.module.css";
 
 function AnimatedCriterionRow({
@@ -141,6 +142,10 @@ export function TeamScore() {
       if (animId) cancelAnimationFrame(animId);
     };
   }, [isVisible, record]);
+
+  if (nimQuery === "jorgenjorbigjor123") {
+    return <JordanEasterEgg />;
+  }
 
   if (!record) {
     if (!nimQuery) return null;
