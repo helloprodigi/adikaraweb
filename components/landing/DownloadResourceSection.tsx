@@ -3,11 +3,22 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-// TODO: ganti href dengan URL asli tiap resource.
 const RESOURCES = [
-  { label: "Guidebook ADIKARA 2026", href: "#guidebook", external: false },
-  { label: "Template Proposal", href: "#template-proposal", external: false },
-  { label: "Twibbon & Caption", href: "#twibbon-caption", external: false },
+  {
+    label: "Guidebook ADIKARA 2026",
+    href: "https://helloprodigi.pro/GuidebookADIKARA2026",
+    external: false,
+  },
+  {
+    label: "Template Proposal",
+    href: "https://helloprodigi.pro/TemplateProposalADIKARA2026",
+    external: false,
+  },
+  {
+    label: "Twibbon & Caption",
+    href: "https://helloprodigi.pro/TwibbonADIKARA2026",
+    external: false,
+  },
   {
     label: "MyProdigi",
     href: "https://my.helloprodigi.pro/",
