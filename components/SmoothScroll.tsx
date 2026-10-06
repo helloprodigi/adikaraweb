@@ -270,6 +270,21 @@ export function SmoothScroll() {
       hoveringNativeScroll = false;
     };
 
+    const isTouch =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(pointer: coarse)").matches ||
+        "ontouchstart" in window ||
+        window.innerWidth <= 900);
+
+    const performScrollTo = (top: number) => {
+      targetScrollY = top;
+      if (isTouch) {
+        window.scrollTo({ top, behavior: "smooth" });
+      } else {
+        start();
+      }
+    };
+
     const scrollToHash = () => {
       const hash = window.location.hash;
       if (!hash) return;
@@ -279,10 +294,9 @@ export function SmoothScroll() {
         measure();
         const rect = target.getBoundingClientRect();
         const navbar = document.querySelector(".floating-navbar");
-        const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 20 : 90;
-        const top = window.scrollY + rect.top - navbarOffset;
-        targetScrollY = Math.min(Math.max(top, 0), maxScroll);
-        start();
+        const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 16 : 80;
+        const top = Math.min(Math.max(window.scrollY + rect.top - navbarOffset, 0), maxScroll);
+        performScrollTo(top);
       }
     };
 
@@ -303,10 +317,9 @@ export function SmoothScroll() {
             measure();
             const rect = target.getBoundingClientRect();
             const navbar = document.querySelector(".floating-navbar");
-            const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 20 : 90;
-            const top = window.scrollY + rect.top - navbarOffset;
-            targetScrollY = Math.min(Math.max(top, 0), maxScroll);
-            start();
+            const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 16 : 80;
+            const top = Math.min(Math.max(window.scrollY + rect.top - navbarOffset, 0), maxScroll);
+            performScrollTo(top);
           }
         }
       }

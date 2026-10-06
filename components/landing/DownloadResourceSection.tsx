@@ -59,13 +59,17 @@ export function DownloadResourceSection() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash === "#download-resource") {
+      setIsVisible(true);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
         }
       },
-      { threshold: 0.35, rootMargin: "0px 0px -100px 0px" }
+      { threshold: 0.05, rootMargin: "100px 0px 100px 0px" }
     );
 
     if (sectionRef.current) {
