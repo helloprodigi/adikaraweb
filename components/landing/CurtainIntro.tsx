@@ -41,6 +41,7 @@ export function CurtainIntro() {
       const skipTimer = setTimeout(() => {
         introStatus = "played";
         setStage("done");
+        window.dispatchEvent(new Event("curtainDone"));
       }, 0);
       return () => {
         clearTimeout(skipTimer);
@@ -60,6 +61,7 @@ export function CurtainIntro() {
       setStage("done");
       document.body.style.overflow = "";
       restoreScrollRestoration();
+      window.dispatchEvent(new Event("curtainDone"));
     }, 3200);
 
     const idleTimer = setTimeout(() => {

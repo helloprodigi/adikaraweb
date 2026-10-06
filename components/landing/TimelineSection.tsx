@@ -58,9 +58,58 @@ function getPhaseStatus(
   return "upcoming";
 }
 
+function getMaxLineProgress(
+  items: Array<{ start: string; end: string }>,
+  now: Date | null
+): number {
+  if (!now) return 1;
+
+  const totalItems = items.length;
+  if (totalItems <= 1) return 1;
+
+  const todayMs = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+  let activeIndex = -1;
+  let currentRatio = 0;
+
+  for (let i = 0; i < totalItems; i++) {
+    const startMs = Date.parse(`${items[i].start}T00:00:00Z`);
+    const endMs = Date.parse(`${items[i].end}T23:59:59Z`);
+
+    if (todayMs > endMs) {
+      activeIndex = i;
+    } else if (todayMs >= startMs && todayMs <= endMs) {
+      activeIndex = i;
+      const totalDuration = Math.max(1, endMs - startMs);
+      const elapsed = Math.max(0, todayMs - startMs);
+      currentRatio = elapsed / totalDuration;
+      break;
+    } else {
+      break;
+    }
+  }
+
+  if (activeIndex < 0) {
+    return 0;
+  }
+
+  const stepSize = 1 / (totalItems - 1);
+  const baseProgress = activeIndex * stepSize;
+  const progressWithinStep = currentRatio * (stepSize * 0.4);
+
+  return Math.min(1, baseProgress + progressWithinStep);
+}
+
 export function TimelineSection() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [now, setNow] = useState<Date | null>(null);
+  const nowRef = useRef<Date | null>(null);
+  const updateRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    nowRef.current = now;
+    updateRef.current();
+  }, [now]);
 
   // Resolve "today" on the client so server and client markup match
   useEffect(() => {
@@ -71,17 +120,13 @@ export function TimelineSection() {
   }, []);
 
   // Scroll-driven timeline line progress.
-  //
-  // The fill is a CSS length driven by a unitless custom property, so it is
-  // written straight to the element instead of through React state: state
-  // would re-render the whole section on every scroll frame.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
 
     let top = 0;
     let height = 0;
-    let lastPercent = -1;
+    let lastValue = -1;
 
     const measure = () => {
       const rect = track.getBoundingClientRect();
@@ -93,15 +138,20 @@ export function TimelineSection() {
       if (height === 0) return;
 
       const startPoint = viewportHeight * 0.75;
-      const progress = Math.min(Math.max((startPoint - (top - scrollY)) / height, 0), 1);
-      const percent = Math.round(progress * 100);
+      const scrollProgress = Math.min(Math.max((startPoint - (top - scrollY)) / height, 0), 1);
+      
+      const maxProgress = getMaxLineProgress(timelineItems, nowRef.current);
+      const effectiveProgress = Math.min(scrollProgress, maxProgress);
 
-      if (percent !== lastPercent) {
-        lastPercent = percent;
-        // Unitless 0..1 so the stylesheet can multiply it against a length.
-        track.style.setProperty("--line-progress", String(percent / 100));
+      const value = Math.round(effectiveProgress * 1000) / 1000;
+
+      if (value !== lastValue) {
+        lastValue = value;
+        track.style.setProperty("--line-progress", String(value));
       }
     };
+
+    updateRef.current = () => update(window.scrollY, window.innerHeight);
 
     measure();
 

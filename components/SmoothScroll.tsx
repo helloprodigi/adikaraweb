@@ -270,6 +270,22 @@ export function SmoothScroll() {
       hoveringNativeScroll = false;
     };
 
+    const scrollToHash = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+      const id = hash.replace("#", "");
+      const target = document.getElementById(id);
+      if (target) {
+        measure();
+        const rect = target.getBoundingClientRect();
+        const navbar = document.querySelector(".floating-navbar");
+        const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 20 : 90;
+        const top = window.scrollY + rect.top - navbarOffset;
+        targetScrollY = Math.min(Math.max(top, 0), maxScroll);
+        start();
+      }
+    };
+
     const handleAnchorClick = (event: MouseEvent) => {
       const anchor = (event.target as HTMLElement | null)?.closest("a");
       if (!anchor) return;
@@ -286,7 +302,9 @@ export function SmoothScroll() {
           if (target) {
             measure();
             const rect = target.getBoundingClientRect();
-            const top = window.scrollY + rect.top;
+            const navbar = document.querySelector(".floating-navbar");
+            const navbarOffset = navbar ? navbar.getBoundingClientRect().height + 20 : 90;
+            const top = window.scrollY + rect.top - navbarOffset;
             targetScrollY = Math.min(Math.max(top, 0), maxScroll);
             start();
           }
@@ -294,26 +312,18 @@ export function SmoothScroll() {
       }
     };
 
-    const scrollToHash = () => {
-      const hash = window.location.hash;
-      if (!hash) return;
-      const id = hash.replace("#", "");
-      const target = document.getElementById(id);
-      if (target) {
-        measure();
-        const rect = target.getBoundingClientRect();
-        const top = window.scrollY + rect.top;
-        targetScrollY = Math.min(Math.max(top, 0), maxScroll);
-        start();
-      }
-    };
-
     measure();
     targetScrollY = window.scrollY;
 
     if (window.location.hash) {
-      setTimeout(scrollToHash, 100);
-      setTimeout(scrollToHash, 350);
+      // Retry sequence to catch layout changes before, during, and after curtain intro & asset load
+      const delays = [50, 200, 500, 1200, 2500, 3300, 4200];
+      delays.forEach((delay) => setTimeout(scrollToHash, delay));
+
+      window.addEventListener("load", scrollToHash);
+      if (typeof document !== "undefined" && "fonts" in document) {
+        document.fonts.ready.then(scrollToHash);
+      }
     } else {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       targetScrollY = 0;
@@ -321,14 +331,12 @@ export function SmoothScroll() {
     }
     measure();
 
-    // Late-loading images, webfonts and expanding sections all change how far
-    // the page can scroll. A resize observer on the document keeps the cached
-    // bound correct without polling layout on every input event.
     const sizeObserver = new ResizeObserver(() => {
       const previousMax = maxScroll;
       measure();
-      if (frame === 0) return;
-      if (targetScrollY > previousMax) {
+      if (window.location.hash) {
+        scrollToHash();
+      } else if (frame !== 0 && targetScrollY > previousMax) {
         targetScrollY = Math.min(targetScrollY, maxScroll);
       }
     });
@@ -342,6 +350,7 @@ export function SmoothScroll() {
     window.addEventListener("pointerout", handlePointerOut, { passive: true });
     window.addEventListener("click", handleAnchorClick);
     window.addEventListener("hashchange", scrollToHash);
+    window.addEventListener("curtainDone", scrollToHash);
 
     return () => {
       if (frame !== 0) cancelAnimationFrame(frame);
@@ -354,6 +363,8 @@ export function SmoothScroll() {
       window.removeEventListener("pointerout", handlePointerOut);
       window.removeEventListener("click", handleAnchorClick);
       window.removeEventListener("hashchange", scrollToHash);
+      window.removeEventListener("curtainDone", scrollToHash);
+      window.removeEventListener("load", scrollToHash);
     };
   }, [pathname]);
 
