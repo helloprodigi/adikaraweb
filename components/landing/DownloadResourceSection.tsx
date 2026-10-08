@@ -54,13 +54,32 @@ function ExternalLinkIcon() {
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 15V3" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M20 21H4" />
+    </svg>
+  );
+}
+
 export function DownloadResourceSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#download-resource") {
-      setIsVisible(true);
+      requestAnimationFrame(() => setIsVisible(true));
     }
 
     const observer = new IntersectionObserver(
@@ -100,7 +119,7 @@ export function DownloadResourceSection() {
 
           <div className="download-resource-content">
             <div className="download-resource-info">
-              <h2 id="resource-title">Download Resource</h2>
+              <h2 id="resource-title">Resource</h2>
               <p>
                 Access All Necessary Documents, Guidebooks, And Templates For ADIKARA 2026. Make Sure To Read The Guidelines Carefully Before Registering.
               </p>
@@ -125,7 +144,7 @@ export function DownloadResourceSection() {
                     <span className="resource-button-label">{resource.label}</span>
                   </div>
                   <span className="link-circle" aria-hidden="true">
-                    <ExternalLinkIcon />
+                    {resource.external ? <ExternalLinkIcon /> : <DownloadIcon />}
                   </span>
                 </a>
               ))}

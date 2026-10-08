@@ -78,14 +78,22 @@ export function Hero() {
         <h1 id="hero-title">
           ADIKARA <span>2026</span>
         </h1>
-        <a
-          className="button button-hero"
-          href="https://helloprodigi.pro/PendaftaranAdikara2026"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Register Now
-        </a>
+        <div className="hero-buttons">
+          <a
+            className="button button-hero"
+            href="https://helloprodigi.pro/PendaftaranAdikara2026"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Register Now
+          </a>
+          <a
+            className="button button-hero button-hero-secondary"
+            href="#download-resource"
+          >
+            Important Link
+          </a>
+        </div>
       </div>
     </section>
   );

@@ -283,10 +283,54 @@ a {
   margin-top: 5px;
 }
 
+.hero-buttons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
 .button-hero {
+  box-shadow: none;
   font-size: 15px;
   height: 49px;
-  min-width: 206px;
+  min-width: 155px;
+  padding: 0 24px;
+}
+
+.button-hero:hover,
+.button-hero:focus-visible {
+  box-shadow: none;
+  transform: translateY(-2px) scale(1.04);
+}
+
+.button-hero:active {
+  box-shadow: none;
+  transform: translateY(0) scale(0.97);
+}
+
+.button-hero-secondary {
+  background: transparent;
+  border: 2px solid var(--adikara-red);
+  box-shadow: none;
+  color: var(--adikara-red);
+}
+
+.button-hero-secondary:hover,
+.button-hero-secondary:focus-visible {
+  background: var(--adikara-red);
+  box-shadow: none;
+  color: #fff;
+}
+
+.button-hero-secondary:active {
+  background: var(--adikara-dark-red);
+  border-color: var(--adikara-dark-red);
+  box-shadow: none;
+  color: #fff;
 }
 
 .hero-decor {
@@ -1633,6 +1677,7 @@ a {
 
 .download-resource-card {
   border-radius: 28px;
+  container-type: inline-size;
   overflow: hidden;
   position: relative;
   width: 100%;
@@ -1648,8 +1693,8 @@ a {
   align-items: center;
   display: flex;
   inset: 0;
-  justify-content: flex-end;
-  padding: 0 8% 0 7%;
+  justify-content: space-between;
+  padding: 0 12% 0 18%;
   position: absolute;
   width: 100%;
   z-index: 2;
@@ -1657,21 +1702,25 @@ a {
 
 .download-resource-info {
   color: #fff;
-  display: none;
-  max-width: 500px;
+  display: block;
+  max-width: min(460px, 34%);
+  min-width: 0;
 }
 
 .download-resource-info h2 {
   color: #fff;
-  font-size: clamp(28px, 3vw, 36px);
+  font-size: clamp(24px, 3vw, 44px);
+  font-size: clamp(24px, 3.1cqw, 44px);
   font-weight: 700;
+  line-height: 1.1;
   margin-bottom: 10px;
   text-align: left;
 }
 
 .download-resource-info p {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  font-size: clamp(13px, 1.1vw, 16px);
+  font-size: clamp(13px, 1.1cqw, 16px);
   line-height: 1.5;
   margin: 0;
   text-align: left;
@@ -1683,7 +1732,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 262px;
+  max-height: min(262px, 78%);
   min-width: 340px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -1791,6 +1840,15 @@ a {
 
 .resource-button:hover .link-circle svg {
   transform: translate(2px, -2px);
+}
+
+/* Narrow desktop band (just above the mobile breakpoint): the card is too
+   short for the full 18%/12% inset, so ease it off to keep a gap between
+   the copy and the scrollable list. */
+@media (min-width: 769px) and (max-width: 860px) {
+  .download-resource-content {
+    padding: 0 8% 0 12%;
+  }
 }
 
 /* MyProdigi Desktop / Mobile Button Switch */
@@ -2437,12 +2495,14 @@ a {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    justify-content: flex-start;
     padding: 0;
     position: static;
   }
 
   .download-resource-info {
     display: block;
+    max-width: 100%;
   }
 
   .download-resource-info h2 {
