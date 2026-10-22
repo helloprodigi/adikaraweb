@@ -77,6 +77,68 @@ export function MyProdigiSection() {
     };
   }, []);
 
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    let raf = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let targetOpacity = 0;
+    let currentOpacity = 0;
+
+    const animate = () => {
+      currentX += (targetX - currentX) * 0.1;
+      currentY += (targetY - currentY) * 0.1;
+      currentOpacity += (targetOpacity - currentOpacity) * 0.06;
+      section.style.setProperty("--pattern-x", `${currentX}px`);
+      section.style.setProperty("--pattern-y", `${currentY}px`);
+      section.style.setProperty(
+        "--pattern-hover-opacity",
+        currentOpacity.toFixed(3)
+      );
+
+      if (
+        Math.abs(targetX - currentX) > 0.1 ||
+        Math.abs(targetY - currentY) > 0.1 ||
+        Math.abs(targetOpacity - currentOpacity) > 0.01
+      ) {
+        raf = requestAnimationFrame(animate);
+      } else {
+        raf = 0;
+      }
+    };
+
+    const onMove = (event: MouseEvent) => {
+      const rect = section.getBoundingClientRect();
+      targetX = event.clientX - rect.left;
+      targetY = event.clientY - rect.top;
+      targetOpacity = 1;
+      if (!raf) raf = requestAnimationFrame(animate);
+    };
+
+    const onLeave = () => {
+      targetOpacity = 0;
+      if (!raf) raf = requestAnimationFrame(animate);
+    };
+
+    section.addEventListener("mousemove", onMove, { passive: true });
+    section.addEventListener("mouseleave", onLeave);
+
+    return () => {
+      section.removeEventListener("mousemove", onMove);
+      section.removeEventListener("mouseleave", onLeave);
+      if (raf) cancelAnimationFrame(raf);
+      section.style.removeProperty("--pattern-x");
+      section.style.removeProperty("--pattern-y");
+      section.style.removeProperty("--pattern-hover-opacity");
+    };
+  }, []);
+
   return (
     <section
       className={`myprodigi-section ${isVisible ? "is-visible" : ""}`}

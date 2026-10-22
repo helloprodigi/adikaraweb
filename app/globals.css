@@ -1342,6 +1342,9 @@ a {
 }
 
 .myprodigi-section {
+  --pattern-hover-opacity: 0;
+  --pattern-x: 50%;
+  --pattern-y: 50%;
   background-color: #fff;
   min-height: 760px;
   overflow: hidden;
@@ -1356,11 +1359,35 @@ a {
   content: "";
   height: 380px;
   left: 0;
-  opacity: 0.35;
+  opacity: 0.12;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 100%;
+  z-index: 0;
+}
+
+.myprodigi-section::after {
+  background-image: url("/landing/hero/hero-pattern.svg");
+  background-position: center;
+  background-repeat: repeat;
+  background-size: auto 520px;
+  content: "";
+  inset: 0;
+  clip-path: inset(calc(50% - 190px) 0);
+  mask-image: radial-gradient(
+    circle 180px at var(--pattern-x) var(--pattern-y),
+    #000 0%,
+    transparent 100%
+  );
+  opacity: calc(var(--pattern-hover-opacity) * 0.42);
+  pointer-events: none;
+  position: absolute;
+  -webkit-mask-image: radial-gradient(
+    circle 180px at var(--pattern-x) var(--pattern-y),
+    #000 0%,
+    transparent 100%
+  );
   z-index: 0;
 }
 
@@ -2470,8 +2497,23 @@ a {
   .myprodigi-section::before {
     background-size: auto 320px;
     height: 240px;
-    opacity: 0.35;
+    opacity: 0.12;
     width: 100%;
+  }
+
+  .myprodigi-section::after {
+    background-size: auto 320px;
+    clip-path: inset(calc(50% - 120px) 0);
+    mask-image: radial-gradient(
+      circle 150px at var(--pattern-x) var(--pattern-y),
+      #000 0%,
+      transparent 100%
+    );
+    -webkit-mask-image: radial-gradient(
+      circle 150px at var(--pattern-x) var(--pattern-y),
+      #000 0%,
+      transparent 100%
+    );
   }
 
   .sponsor-section {
