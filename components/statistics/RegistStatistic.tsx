@@ -4,12 +4,13 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { onViewportEnter, subscribeToScroll } from "@/components/scrollTicker";
 import { useStatistics } from "./StatisticsContext";
-import { PLACEHOLDER, YEARS } from "./statsData";
+import { YearSwitcher } from "./YearSwitcher";
+import { PLACEHOLDER } from "./statsData";
 import styles from "./statistics.module.css";
 
 export function RegistStatistic() {
   const heroRef = useRef<HTMLElement>(null);
-  const { year, setYear, data } = useStatistics();
+  const { year, data } = useStatistics();
   const [animatedValues, setAnimatedValues] = useState<(number | null)[]>(
     () => data.summary.map((stat) => stat.value)
   );
@@ -25,14 +26,6 @@ export function RegistStatistic() {
     phase === "placeholder"
       ? currentSummaryStats.map((stat) => stat.value)
       : animatedValues;
-
-  const handlePrevYear = () => {
-    setYear(YEARS[(YEARS.indexOf(year) - 1 + YEARS.length) % YEARS.length]);
-  };
-
-  const handleNextYear = () => {
-    setYear(YEARS[(YEARS.indexOf(year) + 1) % YEARS.length]);
-  };
 
   useEffect(() => {
     const hero = heroRef.current;
@@ -167,25 +160,7 @@ export function RegistStatistic() {
         <p className={styles.dataTimestamp}>
           Realtime data overview of all ADIKARA Participants.
         </p>
-        <div className={styles.yearSelector} aria-label="Registration year">
-          <button
-            type="button"
-            className={styles.yearArrowBtn}
-            onClick={handlePrevYear}
-            aria-label="Previous year"
-          >
-            <Image className={styles.yearArrowLeft} src="/statistics/arrow.svg" alt="" width={76} height={59} />
-          </button>
-          <span>{year}</span>
-          <button
-            type="button"
-            className={styles.yearArrowBtn}
-            onClick={handleNextYear}
-            aria-label="Next year"
-          >
-            <Image className={styles.yearArrowRight} src="/statistics/arrow.svg" alt="" width={76} height={59} />
-          </button>
-        </div>
+        <YearSwitcher />
       </div>
 
       <div className={styles.summarySection}>

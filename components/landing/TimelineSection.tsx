@@ -5,36 +5,53 @@ import { useEffect, useRef, useState } from "react";
 import { subscribeToScroll } from "@/components/scrollTicker";
 
 const timelineItems = [
-  { title: "Kick Off", date: "5 Oktober 2026", start: "2026-10-05", end: "2026-10-05" },
   {
-    title: "Pendaftaran",
-    date: "5 Oktober - 31 Oktober 2026",
+    title: "Kick Off",
+    date: "5 Oktober 2026",
     start: "2026-10-05",
-    end: "2026-10-31",
+    end: "2026-10-05",
   },
   {
-    title: "Penjurian",
-    date: "1 November - 9 November 2026",
-    start: "2026-11-01",
+    title: "Pendaftaran",
+    date: "5 Oktober - 9 November 2026",
+    start: "2026-10-05",
     end: "2026-11-09",
   },
   {
-    title: "Pengumuman Finalis",
-    date: "11 November 2026",
-    start: "2026-11-11",
+    title: "Mentoring",
+    date: "12 Oktober - 11 November 2026",
+    start: "2026-10-12",
     end: "2026-11-11",
   },
   {
+    title: "Penjurian",
+    date: "10 November - 16 November 2026",
+    start: "2026-11-10",
+    end: "2026-11-16",
+  },
+  {
+    title: "Pengumuman Finalis",
+    date: "19 November 2026",
+    start: "2026-11-19",
+    end: "2026-11-19",
+  },
+  {
+    title: "Registrasi Ulang",
+    date: "19 - 21 November 2026",
+    start: "2026-11-19",
+    end: "2026-11-21",
+  },
+  {
     title: "Final",
-    date: "16 - 20 November 2026",
-    start: "2026-11-16",
-    end: "2026-11-20",
+    date: "3 - 12 Desember 2026",
+    start: "2026-12-03",
+    end: "2026-12-12",
   },
   {
     title: "Awarding",
-    date: "22 November 2026",
-    start: "2026-11-22",
-    end: "2026-11-22",
+    date: "14 Januari 2027",
+    start: "2027-01-14",
+    end: "2027-01-14",
   },
 ];
 
@@ -191,6 +208,25 @@ export function TimelineSection() {
       />
 
       <div className="timeline-content">
+        <div className="timeline-logos">
+          <Image
+            className="timeline-logo"
+            src="/landing/logo-CloudHost.png"
+            alt="CloudHost"
+            width={304}
+            height={183}
+            sizes="(max-width: 768px) 150px, 260px"
+          />
+          <Image
+            className="timeline-logo"
+            src="/landing/logo-KitaLulus.png"
+            alt="KitaLulus"
+            width={700}
+            height={547}
+            sizes="(max-width: 768px) 150px, 260px"
+          />
+        </div>
+
         <h2 id="timeline-title">Event Timeline</h2>
 
         <div className="timeline-track" ref={trackRef}>

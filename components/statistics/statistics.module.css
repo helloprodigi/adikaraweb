@@ -118,18 +118,102 @@
   margin-top: 30px;
 }
 
-.yearSelector span {
-  align-items: center;
+.yearCapsule {
+  --year-slide-distance: 76px;
   background: #fff;
   border: 1px solid #c9070f;
   border-radius: 999px;
   color: #10142b;
-  display: flex;
+  display: grid;
   font-size: 16px;
   font-weight: 600;
   height: 42px;
-  justify-content: center;
   min-width: 106px;
+  overflow: hidden;
+  place-items: center;
+}
+
+.yearLayer {
+  align-items: center;
+  display: flex;
+  grid-area: 1 / 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.yearLayerEnter[data-direction="1"] {
+  animation: yearEnterFromLeft 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+.yearLayerEnter[data-direction="-1"] {
+  animation: yearEnterFromRight 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform;
+}
+
+.yearLayerExit[data-direction="1"] {
+  animation: yearExitToRight 420ms cubic-bezier(0.4, 0, 1, 1) both;
+  will-change: opacity, transform;
+}
+
+.yearLayerExit[data-direction="-1"] {
+  animation: yearExitToLeft 420ms cubic-bezier(0.4, 0, 1, 1) both;
+  will-change: opacity, transform;
+}
+
+@keyframes yearEnterFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--year-slide-distance) * -1));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes yearEnterFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(var(--year-slide-distance));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes yearExitToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(var(--year-slide-distance));
+  }
+}
+
+@keyframes yearExitToLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--year-slide-distance) * -1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yearLayerEnter[data-direction],
+  .yearLayerExit[data-direction] {
+    animation: none;
+  }
+
+  .yearLayerExit {
+    opacity: 0;
+  }
 }
 
 .yearSelector img {
@@ -885,7 +969,7 @@
     width: 56px;
   }
 
-  .yearSelector span {
+  .yearCapsule {
     font-size: 14px;
     height: 38px;
     min-width: 88px;
