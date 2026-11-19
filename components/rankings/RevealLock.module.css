@@ -23,29 +23,15 @@
   position: absolute;
 }
 
-.card {
+.content {
   align-items: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 24px;
   display: flex;
   flex-direction: column;
-  max-width: 560px;
-  padding: 38px 44px;
   position: relative;
   text-align: center;
-  width: 100%;
 }
 
-.kicker {
-  color: #ffc729;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  margin-bottom: 14px;
-}
-
-.card h1 {
+.content h1 {
   color: #fff;
   font-size: clamp(20px, 3vw, 28px);
   font-weight: 700;
@@ -60,15 +46,8 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1;
-  margin: 22px 0 16px;
+  margin: 22px 0 0;
   text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
-}
-
-.note {
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
 }
 
 @keyframes revealOverlayIn {
@@ -77,11 +56,6 @@
 }
 
 @media (max-width: 640px) {
-  .card {
-    border-radius: 18px;
-    padding: 30px 22px;
-  }
-
   .countdown {
     letter-spacing: 0;
   }
