@@ -62,7 +62,7 @@ const rows: Row[] = [
     "permasalahan yang diselesaikan nyata dan sudah didukung data survei siswa maupun wawancara guru. aplikasi fungsional dengan fitur yang matang dan lengkap",
   ],
   [
-    "103022600101",
+    "103012400096",
     "sayaAkanMenang",
     "Alyaa Nur Hanifah",
     "UI/UX",
