@@ -82,7 +82,7 @@ function AnimatedCriterionRow({
 }
 
 function formatScore(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2);
+  return value.toFixed(2);
 }
 
 export function TeamScore() {
@@ -163,10 +163,13 @@ export function TeamScore() {
     return <TeamNotFound nim={nimQuery} />;
   }
 
-  const { nim, teamName, leaderName, division, category, criteria, totalLabel } = record;
+  const { nim, teamName, leaderName, division, category, criteria, totalLabel, rank } = record;
   const hasWeights = criteria.some((criterion) => Boolean(criterion.weight));
+  // Cadangkan ruang untuk angka animasi supaya lebar kartu tidak berubah-ubah
+  // saat hitungan berjalan (nama tim panjang jadi tidak berpindah-pindah).
+  const scoreSlotWidth = `${record.totalScore.toFixed(2).length + 1}ch`;
   const meta = [
-    leaderName ? `Nama: ${leaderName}` : null,
+    leaderName ? `Ketua: ${leaderName}` : null,
     `NIM: ${nim}`,
     division ? `Divisi: ${division}` : null,
   ]
@@ -199,8 +202,14 @@ export function TeamScore() {
                 <p className={styles.teamMeta}>{meta}</p>
               </div>
               <div className={styles.finalScore}>
+                {rank ? (
+                  <div className={styles.rankDisplay}>
+                    <span>Peringkat</span>
+                    <strong>#{rank}</strong>
+                  </div>
+                ) : null}
                 <span>{totalLabel ?? "Final Score"}</span>
-                <strong>{formatScore(animatedScore)}</strong>
+                <strong style={{ minWidth: scoreSlotWidth }}>{formatScore(animatedScore)}</strong>
               </div>
             </article>
 

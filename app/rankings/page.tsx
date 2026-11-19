@@ -133,6 +133,50 @@ export default function RankingsPage() {
           </div>
         </section>
 
+        <section className={styles.scoreSection} aria-labelledby="score-check-title">
+          <div className={styles.panelContent}>
+            <Image className={`${styles.panelOrnament} ${styles.panelOrnamentLeft}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
+            <Image className={`${styles.panelOrnament} ${styles.panelOrnamentRight}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
+            <h2 id="score-check-title">Check Your Team&apos;s Score</h2>
+            <p>All Participants Can View Their Detailed Scores And Judges&apos; Feedback, Whether They Qualified For The Final Or Not.</p>
+            <form
+              className={styles.searchForm}
+              onSubmit={handleScoreCheck}
+              noValidate
+            >
+              <label
+                className={`${styles.searchInput} ${nimError ? styles.searchInputError : ""}`}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
+                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <span className={styles.srOnly}>NIM ketua tim</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  inputMode="numeric"
+                  name="nim"
+                  placeholder="Masukkan NIM ketua"
+                  value={nim}
+                  onChange={(event) => handleNimChange(event.target.value)}
+                  aria-required="true"
+                  aria-invalid={nimError ? "true" : "false"}
+                  aria-describedby="score-check-result"
+                />
+              </label>
+              <button type="submit">Cek Nilai</button>
+            </form>
+            <div
+              className={`${styles.result} ${nimError ? styles.resultError : ""}`}
+              id="score-check-result"
+              aria-live="polite"
+            >
+              {nimError}
+            </div>
+          </div>
+        </section>
+
         <section
           ref={rankingsRef}
           className={`${styles.rankingsSection} ${
@@ -225,50 +269,6 @@ export default function RankingsPage() {
                   </a>
                 </div>
               )}
-            </div>
-          </div>
-        </section>
-
-        <section className={styles.scoreSection} aria-labelledby="score-check-title">
-          <div className={styles.panelContent}>
-            <Image className={`${styles.panelOrnament} ${styles.panelOrnamentLeft}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
-            <Image className={`${styles.panelOrnament} ${styles.panelOrnamentRight}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
-            <h2 id="score-check-title">Check Your Team&apos;s Score</h2>
-            <p>All Participants Can View Their Detailed Scores And Judges&apos; Feedback, Whether They Qualified For The Final Or Not.</p>
-            <form
-              className={styles.searchForm}
-              onSubmit={handleScoreCheck}
-              noValidate
-            >
-              <label
-                className={`${styles.searchInput} ${nimError ? styles.searchInputError : ""}`}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
-                  <path d="M16.5 16.5L21 21" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                </svg>
-                <span className={styles.srOnly}>NIM ketua tim</span>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  inputMode="numeric"
-                  name="nim"
-                  placeholder="Masukkan NIM ketua"
-                  value={nim}
-                  onChange={(event) => handleNimChange(event.target.value)}
-                  aria-required="true"
-                  aria-invalid={nimError ? "true" : "false"}
-                  aria-describedby="score-check-result"
-                />
-              </label>
-              <button type="submit">Cek Nilai</button>
-            </form>
-            <div
-              className={`${styles.result} ${nimError ? styles.resultError : ""}`}
-              id="score-check-result"
-              aria-live="polite"
-            >
-              {nimError}
             </div>
           </div>
         </section>

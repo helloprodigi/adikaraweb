@@ -59,8 +59,8 @@ export const cpRecords: TeamScoreRecord[] = rows.map(
     totalScore: solved,
     totalLabel: "Problems Solved",
     criteria: [
-      { title: "Solved", score: String(solved) },
-      { title: "Time Penalty", score: String(penalty) },
+      { title: "Solved", score: solved.toFixed(2) },
+      { title: "Time Penalty", score: penalty.toFixed(2) },
     ],
   })
 );

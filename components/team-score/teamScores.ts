@@ -13,9 +13,11 @@ export type TeamScoreRecord = {
   category: string;
   totalScore: number;
   totalLabel?: string;
+  rank?: number;
   criteria: Criterion[];
 };
 
+import { finalistCategories } from "../rankings/finalists";
 import { ctfRecords } from "./scoreData/ctf";
 import { cpRecords } from "./scoreData/cp";
 import { entrepreneurshipRecords } from "./scoreData/entrepreneurship";
@@ -25,11 +27,15 @@ function normalizeNim(nim: string): string {
   return nim.replace(/[\s-]/g, "").toUpperCase();
 }
 
+function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
 // Satu NIM hanya boleh muncul sekali supaya pencarian tidak mengembalikan data
 // dari submission lama.
 const seenNims = new Set<string>();
 
-export const teamScores: TeamScoreRecord[] = [
+const mergedRecords: TeamScoreRecord[] = [
   ...ctfRecords,
   ...cpRecords,
   ...entrepreneurshipRecords,
@@ -40,6 +46,73 @@ export const teamScores: TeamScoreRecord[] = [
   seenNims.add(key);
   return true;
 });
+
+// Urutan resmi finalis adalah sumber peringkat yang paling akurat. Beberapa
+// nama tim di data skor sudah dinormalisasi, jadi kalau nama tidak cocok kami
+// pakai skor unik sebagai fallback.
+type OfficialRanks = {
+  byName: Map<string, number>;
+  byScore: Map<number, number>;
+};
+
+const officialRanks = new Map<string, OfficialRanks>();
+
+for (const category of finalistCategories) {
+  const byName = new Map<string, number>();
+  const byScore = new Map<number, number>();
+
+  for (const finalist of category.finalists) {
+    if (finalist.rank === undefined) continue;
+    byName.set(normalizeName(finalist.teamName), finalist.rank);
+    if (typeof finalist.score === "number" && !byScore.has(finalist.score)) {
+      byScore.set(finalist.score, finalist.rank);
+    }
+  }
+
+  officialRanks.set(category.label, { byName, byScore });
+}
+
+const scoreCounts = new Map<string, Map<number, number>>();
+
+for (const record of mergedRecords) {
+  const counts = scoreCounts.get(record.category) ?? new Map<number, number>();
+  counts.set(record.totalScore, (counts.get(record.totalScore) ?? 0) + 1);
+  scoreCounts.set(record.category, counts);
+}
+
+function compareByScore(a: TeamScoreRecord, b: TeamScoreRecord): number {
+  if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+
+  // CP: yang lebih sedikit penaltinya berada di depan saat solved sama.
+  const penaltyA = Number(a.criteria.find((c) => c.title === "Time Penalty")?.score ?? 0);
+  const penaltyB = Number(b.criteria.find((c) => c.title === "Time Penalty")?.score ?? 0);
+
+  return penaltyA - penaltyB;
+}
+
+for (const category of new Set(mergedRecords.map((record) => record.category))) {
+  const records = mergedRecords
+    .filter((record) => record.category === category)
+    .sort(compareByScore);
+  const official = officialRanks.get(category);
+  const counts = scoreCounts.get(category) ?? new Map<number, number>();
+
+  records.forEach((record, index) => {
+    let rank = index + 1;
+    const nameRank = official?.byName.get(normalizeName(record.teamName));
+    const scoreRank = official?.byScore.get(record.totalScore);
+
+    if (nameRank !== undefined) {
+      rank = nameRank;
+    } else if (scoreRank !== undefined && counts.get(record.totalScore) === 1) {
+      rank = scoreRank;
+    }
+
+    record.rank = rank;
+  });
+}
+
+export const teamScores: TeamScoreRecord[] = mergedRecords;
 
 export function findTeamByNim(nim: string | null | undefined): TeamScoreRecord | null {
   if (!nim) return null;

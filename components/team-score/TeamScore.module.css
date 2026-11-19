@@ -200,6 +200,26 @@
 .finalScore strong {
   display: block;
   font-size: clamp(38px, 5vw, 60px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.finalScore .rankDisplay {
+  margin: 0 0 14px;
+}
+
+.finalScore .rankDisplay span {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin: 0 0 2px;
+  text-transform: uppercase;
+}
+
+.finalScore .rankDisplay strong {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -387,6 +407,7 @@
   color: #c9070f;
   font-size: 28px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   margin-left: var(--row-pad);
   place-self: center;
   text-align: center;

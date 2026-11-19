@@ -54,9 +54,9 @@ export const ctfRecords: TeamScoreRecord[] = rows.map(
     category: "Capture The Flag",
     totalScore: finalScore,
     criteria: [
-      { title: "Public Score", score: String(publicScore) },
-      { title: "Pengurangan Skor", score: String(deduction) },
-      { title: "Final Score", score: String(finalScore) },
+      { title: "Public Score", score: publicScore.toFixed(2) },
+      { title: "Pengurangan Skor", score: deduction.toFixed(2) },
+      { title: "Final Score", score: finalScore.toFixed(2) },
     ],
   })
 );
