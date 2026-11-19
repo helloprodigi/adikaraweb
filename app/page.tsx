@@ -1,4 +1,5 @@
 import { CurtainIntro } from "@/components/landing/CurtainIntro";
+import { RankingTour } from "@/components/landing/RankingTour";
 import { Hero } from "@/components/landing/hero";
 import { Navbar } from "@/components/landing/navbar";
 import { GlowField } from "@/components/landing/GlowField";
@@ -18,6 +19,7 @@ export default function Home() {
   return (
     <main className="landing-page">
       <CurtainIntro />
+      <RankingTour />
       <Navbar />
       <GlowField />
       <Hero />

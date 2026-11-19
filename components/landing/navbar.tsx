@@ -26,6 +26,21 @@ export function Navbar() {
   // Resetting the scroll on navigation is handled centrally by SmoothScroll,
   // which owns the glide. A second scrollTo here would only fight it.
 
+  // Tour pengumuman perlu membuka sidebar di mobile supaya tautan Rankings
+  // bisa disorot. Navbar tetap menjadi satu-satunya pemilik state isOpen.
+  useEffect(() => {
+    const openMenu = () => setIsOpen(true);
+    const closeMenu = () => setIsOpen(false);
+
+    window.addEventListener("adikara:openMobileMenu", openMenu);
+    window.addEventListener("adikara:closeMobileMenu", closeMenu);
+
+    return () => {
+      window.removeEventListener("adikara:openMobileMenu", openMenu);
+      window.removeEventListener("adikara:closeMobileMenu", closeMenu);
+    };
+  }, []);
+
   useEffect(() => {
     const progressInner = progressRef.current;
 
@@ -112,6 +127,7 @@ export function Navbar() {
               href={item.href}
               className={pathname === item.href ? "is-active" : ""}
               onClick={handleNavClick}
+              data-tour={item.href === "/rankings" ? "rankings-link" : undefined}
             >
               {item.label}
             </Link>
@@ -166,6 +182,7 @@ export function Navbar() {
                 href={item.href}
                 className={pathname === item.href ? "is-active" : ""}
                 onClick={handleNavClick}
+                data-tour={item.href === "/rankings" ? "rankings-link" : undefined}
               >
                 {item.label}
               </Link>
