@@ -2689,7 +2689,7 @@ a {
 
 .ranking-tour-fullbackdrop {
   background:
-    linear-gradient(135deg, rgba(201, 7, 15, 0.78), rgba(169, 0, 9, 0.72));
+    linear-gradient(135deg, rgba(201, 7, 15, 0.88), rgba(169, 0, 9, 0.84));
   inset: 0;
   position: absolute;
   animation: ranking-tour-fade-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -2703,7 +2703,7 @@ a {
 .ranking-tour-hole {
   border-radius: 999px;
   box-shadow:
-    0 0 0 9999px rgba(201, 7, 15, 0.78),
+    0 0 0 9999px rgba(201, 7, 15, 0.88),
     0 12px 36px rgba(86, 0, 5, 0.12);
   position: fixed;
   z-index: 1;
