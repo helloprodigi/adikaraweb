@@ -32,7 +32,11 @@ export async function GET(request: Request) {
     return Response.json({ error: "not found" }, { status: 404 });
   }
 
-  return Response.json(record, {
+  // HP hanya bagian dari database server, tidak dikirim ke browser.
+  const publicRecord = { ...record };
+  delete publicRecord.hp;
+
+  return Response.json(publicRecord, {
     headers: { "Cache-Control": "no-store" },
   });
 }

@@ -15,11 +15,19 @@ export type TeamScoreRecord = {
   totalLabel?: string;
   rank?: number;
   isFinalist?: boolean;
+  publicPlace?: number;
+  teamId?: number | string;
+  publicScore?: number;
+  deduction?: number;
+  finalScore?: number;
+  finalPlace?: number;
+  hp?: string;
   criteria: Criterion[];
 };
 
 import { finalistCategories } from "../rankings/finalists";
 import { ctfRecords } from "./scoreData/ctf";
+import { ctfNonFinalists } from "./scoreData/ctfNonFinalists";
 import { cpRecords } from "./scoreData/cp";
 import { entrepreneurshipRecords } from "./scoreData/entrepreneurship";
 import { innovationRecords } from "./scoreData/innovation";
@@ -38,6 +46,7 @@ const seenNims = new Set<string>();
 
 const mergedRecords: TeamScoreRecord[] = [
   ...ctfRecords,
+  ...ctfNonFinalists,
   ...cpRecords,
   ...entrepreneurshipRecords,
   ...innovationRecords,
@@ -99,10 +108,17 @@ for (const category of new Set(mergedRecords.map((record) => record.category))) 
   const counts = scoreCounts.get(category) ?? new Map<number, number>();
 
   records.forEach((record, index) => {
-    let rank = index + 1;
     const nameRank = official?.byName.get(normalizeName(record.teamName));
     const scoreRank = official?.byScore.get(record.totalScore);
 
+    // Data non-finalis sudah membawa final_place resmi dari panitia.
+    if (record.finalPlace !== undefined) {
+      record.rank = nameRank ?? record.finalPlace;
+      record.isFinalist = nameRank !== undefined;
+      return;
+    }
+
+    let rank = index + 1;
     if (nameRank !== undefined) {
       rank = nameRank;
     } else if (scoreRank !== undefined && counts.get(record.totalScore) === 1) {
