@@ -40,9 +40,11 @@ function normalizeName(name: string): string {
   return name.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-// Satu NIM hanya boleh muncul sekali supaya pencarian tidak mengembalikan data
-// dari submission lama.
-const seenNims = new Set<string>();
+// Satu NIM hanya boleh muncul sekali per kategori supaya pencarian tidak
+// mengembalikan data dari submission lama. NIM yang sama lintas kategori
+// dipertahankan karena datanya memang berbeda (misalnya peserta CP yang juga
+// mengikuti Innovation).
+const seenKeys = new Set<string>();
 
 const mergedRecords: TeamScoreRecord[] = [
   ...ctfRecords,
@@ -51,9 +53,9 @@ const mergedRecords: TeamScoreRecord[] = [
   ...entrepreneurshipRecords,
   ...innovationRecords,
 ].filter((record) => {
-  const key = normalizeNim(record.nim);
-  if (seenNims.has(key)) return false;
-  seenNims.add(key);
+  const key = `${record.category}:${normalizeNim(record.nim)}`;
+  if (seenKeys.has(key)) return false;
+  seenKeys.add(key);
   return true;
 });
 
