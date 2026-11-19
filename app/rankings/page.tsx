@@ -48,7 +48,7 @@ export default function RankingsPage() {
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [isRevealed]);
 
   useEffect(() => {
     const element = rankingsRef.current;
@@ -66,7 +66,7 @@ export default function RankingsPage() {
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [isRevealed]);
 
   // True on the server and on the first client render alike, so the block ships
   // hidden and React has nothing to reconcile. It is only dropped once the
