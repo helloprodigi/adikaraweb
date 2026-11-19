@@ -14,6 +14,7 @@ export type TeamScoreRecord = {
   totalScore: number;
   totalLabel?: string;
   rank?: number;
+  isFinalist?: boolean;
   criteria: Criterion[];
 };
 
@@ -108,6 +109,11 @@ for (const category of new Set(mergedRecords.map((record) => record.category))) 
       rank = scoreRank;
     }
 
+    // Penentuan finalis memakai kecocokan data resmi, bukan sekadar ada rank:
+    // rank fallback juga diberikan ke peserta yang tidak lolos.
+    record.isFinalist =
+      nameRank !== undefined ||
+      (scoreRank !== undefined && counts.get(record.totalScore) === 1);
     record.rank = rank;
   });
 }

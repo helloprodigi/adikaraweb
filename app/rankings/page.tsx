@@ -6,6 +6,9 @@ import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { useScoreGate } from "@/components/rankings/ScoreGateProvider";
 import { finalistCategories as categories } from "@/components/rankings/finalists";
+import { getAdminWhatsAppUrl } from "@/components/rankings/adminWhatsapp";
+import { useRevealGate } from "@/components/rankings/revealGate";
+import { RevealLock } from "@/components/rankings/RevealLock";
 import styles from "./rankings.module.css";
 
 const PLACEHOLDER_NAME = "Waiting for teams..";
@@ -14,37 +17,9 @@ const PLACEHOLDER_SCORE = "??";
 
 const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
 
-const ADMIN_WHATSAPP_NUMBER = "6281313853065";
-
-const ADMIN_MESSAGE_CLOSING =
-  "Mohon informasi terkait link registrasi ulang dan grup WhatsApp finalis untuk tahap selanjutnya.";
-
-function getAdminWhatsAppUrl(categoryId: string, categoryLabel: string) {
-  const lines =
-    categoryId === "competitive-programming"
-      ? [
-          "Halo Admin ADIKARA 2026!",
-          "Saya ingin melakukan registrasi ulang sebagai finalis ADIKARA 2026.",
-          "Nama Peserta: ",
-          `Cabang Lomba: ${categoryLabel}`,
-          ADMIN_MESSAGE_CLOSING,
-          "Terima kasih!",
-        ]
-      : [
-          "Halo Admin ADIKARA 2026!",
-          "Kami ingin melakukan registrasi ulang sebagai finalis ADIKARA 2026.",
-          "Nama Ketua Tim: ",
-          "Nama Tim: ",
-          `Divisi Lomba: ${categoryLabel}`,
-          ADMIN_MESSAGE_CLOSING,
-          "Terima kasih!",
-        ];
-
-  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
-}
-
 export default function RankingsPage() {
   const { openScoreGate } = useScoreGate();
+  const { isRevealed, remainingMs, ready } = useRevealGate();
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isVisible, setIsVisible] = useState(false);
   const [rankingsVisible, setRankingsVisible] = useState(false);
@@ -54,6 +29,8 @@ export default function RankingsPage() {
   const pageRef = useRef<HTMLElement>(null);
   const rankingsRef = useRef<HTMLElement>(null);
   const category = categories.find((item) => item.id === activeCategory) ?? categories[0];
+  const hideRanks = category.id === "innovation";
+  const visibleFinalists = category.finalists;
 
   useEffect(() => {
     const element = pageRef.current;
@@ -117,6 +94,10 @@ export default function RankingsPage() {
     // playing while the score page is loaded behind them.
     openScoreGate(trimmedNim);
   };
+
+  // Seluruh halaman dikunci sampai waktu reveal. Server dan render pertama
+  // klien sama-sama memakai kondisi ini, jadi tidak ada hydration mismatch.
+  if (!ready || !isRevealed) return <RevealLock remainingMs={remainingMs} />;
 
   return (
     <>
@@ -203,10 +184,15 @@ export default function RankingsPage() {
             <div className={styles.rankings}>
               <h2 id="ranking-list-title">Finalis {category.label}</h2>
               <div className={styles.cardList} role="tabpanel">
-                {category.finalists.length > 0
-                  ? category.finalists.map((entry, index) => (
-                      <article className={styles.rankingCard} key={entry.teamId}>
-                        <div className={styles.rank}>{entry.rank ?? index + 1}</div>
+                {visibleFinalists.length > 0
+                  ? visibleFinalists.map((entry, index) => (
+                      <article
+                        className={`${styles.rankingCard} ${hideRanks ? styles.noRankCard : ""}`}
+                        key={entry.teamId}
+                      >
+                        {!hideRanks && (
+                          <div className={styles.rank}>{entry.rank ?? index + 1}</div>
+                        )}
                         <div className={styles.teamInfo}>
                           <h3>{entry.teamName}</h3>
                           {entry.description && <p>{entry.description}</p>}
@@ -229,10 +215,12 @@ export default function RankingsPage() {
                     ))
                   : Array.from({ length: 5 }, (_, index) => (
                       <article
-                        className={`${styles.rankingCard} ${styles.placeholderCard}`}
+                        className={`${styles.rankingCard} ${styles.placeholderCard} ${
+                          hideRanks ? styles.noRankCard : ""
+                        }`}
                         key={`placeholder-${category.id}-${index}`}
                       >
-                        <div className={styles.rank}>{index + 1}</div>
+                        {!hideRanks && <div className={styles.rank}>{index + 1}</div>}
                         <div className={styles.teamInfo}>
                           <h3>{PLACEHOLDER_NAME}</h3>
                           <p>{PLACEHOLDER_DESCRIPTION}</p>
@@ -245,7 +233,7 @@ export default function RankingsPage() {
                     ))}
               </div>
 
-              {category.finalists.length > 0 && (
+              {visibleFinalists.length > 0 && (
                 <div className={styles.ctaPanel}>
                   <div className={styles.ctaText}>
                     <h3>Registrasi Ulang Finalis</h3>
@@ -257,7 +245,7 @@ export default function RankingsPage() {
                   </div>
                   <a
                     className={styles.ctaButton}
-                    href={getAdminWhatsAppUrl(category.id, category.label)}
+                    href={getAdminWhatsAppUrl(category.label)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

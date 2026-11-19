@@ -71,13 +71,14 @@ export function ScoreGateOverlay({
   return (
     <div
       className={`${styles.overlay} ${
-        isDescending ? "is-dropping" : ""
+        isDescending ? styles["is-dropping"] : ""
       } ${isLeaving ? styles.isLeaving : ""}`}
       role="alertdialog"
       aria-live="assertive"
       aria-label={`Memuat nilai tim ${nim}`}
     >
       <div className={styles.pattern} aria-hidden="true" />
+      <div className={styles.vignette} aria-hidden="true" />
 
       <div className="drop-streaks" aria-hidden="true">
         {DROP_STREAKS.map((streak) => (
