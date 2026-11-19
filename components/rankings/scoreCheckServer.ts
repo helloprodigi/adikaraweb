@@ -15,17 +15,22 @@ export function createScoreCheckValue(nim: string) {
   return `${payload}.${sign(payload)}`;
 }
 
-export function hasValidScoreCheckCookie(value: string | undefined) {
-  if (!value) return false;
+export function getValidCheckedNim(value: string | undefined) {
+  if (!value) return null;
   const parts = value.split(".");
-  if (parts.length !== 3) return false;
+  if (parts.length !== 3) return null;
 
   const [nim, issuedAt, signature] = parts;
-  if (!nim || !issuedAt || !signature) return false;
+  if (!nim || !issuedAt || !signature) return null;
 
   const expected = sign(`${nim}.${issuedAt}`);
   const actualBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expected);
-  if (actualBuffer.length !== expectedBuffer.length) return false;
-  return timingSafeEqual(actualBuffer, expectedBuffer);
+  if (actualBuffer.length !== expectedBuffer.length) return null;
+  if (!timingSafeEqual(actualBuffer, expectedBuffer)) return null;
+  return nim;
+}
+
+export function hasValidScoreCheckCookie(value: string | undefined) {
+  return getValidCheckedNim(value) !== null;
 }
