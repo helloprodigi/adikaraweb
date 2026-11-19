@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { useScoreGate } from "@/components/rankings/ScoreGateProvider";
-import { finalistCategories as categories } from "@/components/rankings/finalists";
+import type { FinalistCategory } from "@/components/rankings/finalists";
 import { getAdminWhatsAppUrl } from "@/components/rankings/adminWhatsapp";
 import { useServerClock } from "@/components/rankings/useServerClock";
 import { RevealLock } from "@/components/rankings/RevealLock";
@@ -20,9 +20,11 @@ const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
 export default function RankingsClient({
   initialServerNow,
   initialHasChecked,
+  categories,
 }: {
   initialServerNow: number;
   initialHasChecked: boolean;
+  categories: FinalistCategory[];
 }) {
   const { openScoreGate } = useScoreGate();
   const { isRevealed, remainingMs } = useServerClock(initialServerNow);

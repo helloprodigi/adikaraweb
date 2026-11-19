@@ -1,4 +1,8 @@
 import { cookies } from "next/headers";
+import {
+  getRevealStatus,
+  getServerNow,
+} from "@/components/rankings/revealSchedule";
 import { findTeamByNim } from "@/components/team-score/teamScores";
 import {
   createScoreCheckValue,
@@ -6,6 +10,12 @@ import {
 } from "@/components/rankings/scoreCheckServer";
 
 export async function POST(request: Request) {
+  // Check nilai hanya bisa dipanggil setelah reveal. Sebelum jam pengumuman,
+  // tidak ada jalan untuk mendapat cookie bertanda tangan dari sisi klien.
+  if (!getRevealStatus(getServerNow()).isRevealed) {
+    return Response.json({ ok: false }, { status: 403 });
+  }
+
   let nim = "";
   try {
     const body = (await request.json()) as { nim?: unknown };

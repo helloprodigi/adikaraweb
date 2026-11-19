@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
-import { findTeamByNim, type Criterion } from "./teamScores";
+import type { Criterion, TeamScoreRecord } from "./teamScores";
 import { getAdminWhatsAppUrl } from "@/components/rankings/adminWhatsapp";
 import { TeamNotFound } from "./TeamNotFound";
 import { JordanEasterEgg } from "@/components/easter-egg/JordanEasterEgg";
@@ -94,7 +94,12 @@ export function TeamScore() {
   const [isFinalScoreDone, setIsFinalScoreDone] = useState(false);
 
   const nimQuery = (searchParams.get("nim") ?? searchParams.get("id"))?.trim() ?? "";
-  const record = useMemo(() => findTeamByNim(nimQuery), [nimQuery]);
+  const [loaded, setLoaded] = useState<{
+    nim: string;
+    record: TeamScoreRecord | null;
+  } | null>(null);
+  const record = loaded?.nim === nimQuery ? loaded.record : null;
+  const isLoading = loaded?.nim !== nimQuery;
 
   const outcomeMessage = useMemo(() => {
     if (!record) return "";
@@ -129,7 +134,26 @@ export function TeamScore() {
   useEffect(() => {
     if (!nimQuery) {
       router.replace("/rankings");
+      return;
     }
+
+    let cancelled = false;
+    fetch(`/api/team-score?nim=${encodeURIComponent(nimQuery)}`, {
+      cache: "no-store",
+    })
+      .then((response) =>
+        response.ok ? (response.json() as Promise<TeamScoreRecord>) : null
+      )
+      .then((data) => {
+        if (!cancelled) setLoaded({ nim: nimQuery, record: data });
+      })
+      .catch(() => {
+        if (!cancelled) setLoaded({ nim: nimQuery, record: null });
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [nimQuery, router]);
 
   useEffect(() => {
@@ -187,7 +211,7 @@ export function TeamScore() {
   }
 
   if (!record) {
-    if (!nimQuery) return null;
+    if (!nimQuery || isLoading) return null;
     return <TeamNotFound nim={nimQuery} />;
   }
 

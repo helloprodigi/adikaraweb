@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { REVEAL_AT_MS } from "./revealSchedule";
 
 export const SCORE_CHECK_COOKIE = "adikara_score_checked";
 
@@ -11,19 +12,23 @@ function sign(payload: string) {
 
 export function createScoreCheckValue(nim: string) {
   const issuedAt = Date.now().toString();
-  const payload = `${nim}.${issuedAt}`;
+  const payload = `${nim}.${issuedAt}.${REVEAL_AT_MS}`;
   return `${payload}.${sign(payload)}`;
 }
 
 export function getValidCheckedNim(value: string | undefined) {
   if (!value) return null;
   const parts = value.split(".");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 4) return null;
 
-  const [nim, issuedAt, signature] = parts;
-  if (!nim || !issuedAt || !signature) return null;
+  const [nim, issuedAt, revealAt, signature] = parts;
+  if (!nim || !issuedAt || !revealAt || !signature) return null;
+  if (revealAt !== String(REVEAL_AT_MS)) return null;
 
-  const expected = sign(`${nim}.${issuedAt}`);
+  const issuedAtMs = Number(issuedAt);
+  if (!Number.isFinite(issuedAtMs) || issuedAtMs < REVEAL_AT_MS) return null;
+
+  const expected = sign(`${nim}.${issuedAt}.${revealAt}`);
   const actualBuffer = Buffer.from(signature);
   const expectedBuffer = Buffer.from(expected);
   if (actualBuffer.length !== expectedBuffer.length) return null;
