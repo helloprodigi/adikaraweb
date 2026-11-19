@@ -23,7 +23,10 @@ function AnimatedCriterionRow({
   const [isStarted, setIsStarted] = useState(false);
   const [typedFeedback, setTypedFeedback] = useState("");
 
-  const fullFeedback = criterion.feedback;
+  const fullFeedback = criterion.feedback ?? "";
+  // Komentar juri bisa sangat panjang. Animasi ketik hanya untuk feedback
+  // pendek supaya halaman tidak terasa "hang".
+  const shouldType = fullFeedback.length > 0 && fullFeedback.length <= 240;
 
   useEffect(() => {
     if (!start) return;
@@ -36,7 +39,7 @@ function AnimatedCriterionRow({
   }, [start, delay]);
 
   useEffect(() => {
-    if (!isStarted) return;
+    if (!isStarted || !shouldType) return;
 
     let index = 0;
     const speed = 18;
@@ -51,13 +54,15 @@ function AnimatedCriterionRow({
     }, speed);
 
     return () => clearInterval(typeInterval);
-  }, [isStarted, fullFeedback]);
+  }, [isStarted, fullFeedback, shouldType]);
+
+  const displayedFeedback = shouldType ? typedFeedback : fullFeedback;
 
   return (
     <article className={styles.criterion}>
       <div className={styles.criterionMain}>
         <h3>{criterion.title}</h3>
-        <span className={styles.weight}>{criterion.weight}</span>
+        <span className={styles.weight}>{criterion.weight ?? "—"}</span>
         <strong
           className={`${styles.judgeScore} ${
             isStarted ? styles.judgeScoreVisible : styles.judgeScoreHidden
@@ -66,12 +71,18 @@ function AnimatedCriterionRow({
           {isStarted ? criterion.score : ""}
         </strong>
       </div>
-      <div className={styles.feedback}>
-        <span>JURY FEEDBACK</span>
-        <p>{typedFeedback}</p>
-      </div>
+      {fullFeedback && (
+        <div className={styles.feedback}>
+          <span>JURY FEEDBACK</span>
+          <p>{isStarted ? displayedFeedback : ""}</p>
+        </div>
+      )}
     </article>
   );
+}
+
+function formatScore(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
 export function TeamScore() {
@@ -152,7 +163,15 @@ export function TeamScore() {
     return <TeamNotFound nim={nimQuery} />;
   }
 
-  const { teamName, category, criteria } = record;
+  const { nim, teamName, leaderName, division, category, criteria, totalLabel } = record;
+  const hasWeights = criteria.some((criterion) => Boolean(criterion.weight));
+  const meta = [
+    leaderName ? `Nama: ${leaderName}` : null,
+    `NIM: ${nim}`,
+    division ? `Divisi: ${division}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <>
@@ -174,13 +193,14 @@ export function TeamScore() {
               <span className={styles.backText}>Back To Rankings</span>
             </Link>
             <article className={styles.scoreCard}>
-              <div>
+              <div className={styles.scoreCardText}>
                 <h1 id="team-score-title">{teamName}</h1>
                 <p>{category}</p>
+                <p className={styles.teamMeta}>{meta}</p>
               </div>
               <div className={styles.finalScore}>
-                <span>Final Score</span>
-                <strong>{animatedScore.toFixed(2)}</strong>
+                <span>{totalLabel ?? "Final Score"}</span>
+                <strong>{formatScore(animatedScore)}</strong>
               </div>
             </article>
 
@@ -201,8 +221,8 @@ export function TeamScore() {
               ))}
               <div className={styles.totalRow}>
                 <strong>Total</strong>
-                <strong>100%</strong>
-                <strong>{animatedScore.toFixed(2)}</strong>
+                <strong>{hasWeights ? "100%" : "—"}</strong>
+                <strong>{formatScore(animatedScore)}</strong>
               </div>
             </section>
           </div>

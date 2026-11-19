@@ -15,7 +15,7 @@ const quickLinks = [
 const categoriesLabels = [
   "Competitive Programming",
   "Data Mining",
-  "Cyber Security",
+  "Capture The Flag",
   "Entrepreneurship",
   "Innovation",
 ];

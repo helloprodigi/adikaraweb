@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Finalis ADIKARA 2026",
   description:
-    "Lihat daftar finalis ADIKARA 2026 per kategori: Innovation, Competitive Programming, Cyber Security, Data Mining, dan Entrepreneurship. Cek skor tim kamu di halaman score check.",
+    "Lihat daftar finalis ADIKARA 2026 per kategori: Innovation, Competitive Programming, Capture The Flag, Data Mining, dan Entrepreneurship. Cek skor tim kamu di halaman score check.",
   alternates: {
     canonical: "/rankings",
   },

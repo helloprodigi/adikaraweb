@@ -5,36 +5,43 @@ import { useEffect, useRef, useState } from "react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { useScoreGate } from "@/components/rankings/ScoreGateProvider";
-import { RandomAmbientGlow } from "@/components/team-score/RandomAmbientGlow";
+import { finalistCategories as categories } from "@/components/rankings/finalists";
 import styles from "./rankings.module.css";
-
-type RankingEntry = {
-  teamId: string;
-  teamName: string;
-  description: string;
-  score: number;
-};
-
-type RankingCategory = {
-  id: string;
-  label: string;
-  rankings: RankingEntry[];
-};
-
-// Finalis belum diumumkan, tampilkan placeholder sampai data tersedia
-const categories: RankingCategory[] = [
-  { id: "innovation", label: "Innovation", rankings: [] },
-  { id: "competitive-programming", label: "Competitive Programming", rankings: [] },
-  { id: "cyber-security", label: "Cyber Security", rankings: [] },
-  { id: "data-mining", label: "Data Mining", rankings: [] },
-  { id: "entrepreneurship", label: "Entrepreneurship", rankings: [] },
-];
 
 const PLACEHOLDER_NAME = "Waiting for teams..";
 const PLACEHOLDER_DESCRIPTION = "Waiting for you to be the finalist";
 const PLACEHOLDER_SCORE = "??";
 
 const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
+
+const ADMIN_WHATSAPP_NUMBER = "6281313853065";
+
+const ADMIN_MESSAGE_CLOSING =
+  "Mohon informasi terkait link registrasi ulang dan grup WhatsApp finalis untuk tahap selanjutnya.";
+
+function getAdminWhatsAppUrl(categoryId: string, categoryLabel: string) {
+  const lines =
+    categoryId === "competitive-programming"
+      ? [
+          "Halo Admin ADIKARA 2026!",
+          "Saya ingin melakukan registrasi ulang sebagai finalis ADIKARA 2026.",
+          "Nama Peserta: ",
+          `Cabang Lomba: ${categoryLabel}`,
+          ADMIN_MESSAGE_CLOSING,
+          "Terima kasih!",
+        ]
+      : [
+          "Halo Admin ADIKARA 2026!",
+          "Kami ingin melakukan registrasi ulang sebagai finalis ADIKARA 2026.",
+          "Nama Ketua Tim: ",
+          "Nama Tim: ",
+          `Divisi Lomba: ${categoryLabel}`,
+          ADMIN_MESSAGE_CLOSING,
+          "Terima kasih!",
+        ];
+
+  return `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
 
 export default function RankingsPage() {
   const { openScoreGate } = useScoreGate();
@@ -77,7 +84,7 @@ export default function RankingsPage() {
           observer.disconnect();
         }
       },
-      { rootMargin: "0px 0px -20% 0px", threshold: 0.5 }
+      { rootMargin: "0px 0px -15% 0px", threshold: 0 }
     );
 
     observer.observe(element);
@@ -133,7 +140,6 @@ export default function RankingsPage() {
           } ${rankingsVisible ? styles.rankingsVisible : ""}`}
           aria-labelledby="ranking-list-title"
         >
-          <RandomAmbientGlow />
           <div className={styles.content}>
             <div className={styles.tabs} role="tablist" aria-label="Ranking categories">
               {categories.map((item) => (
@@ -151,19 +157,29 @@ export default function RankingsPage() {
             </div>
 
             <div className={styles.rankings}>
-              <h2 id="ranking-list-title">Top 5 {category.label}</h2>
+              <h2 id="ranking-list-title">Finalis {category.label}</h2>
               <div className={styles.cardList} role="tabpanel">
-                {category.rankings.length > 0
-                  ? category.rankings.map((entry, index) => (
+                {category.finalists.length > 0
+                  ? category.finalists.map((entry, index) => (
                       <article className={styles.rankingCard} key={entry.teamId}>
-                        <div className={styles.rank}>{index + 1}</div>
+                        <div className={styles.rank}>{entry.rank ?? index + 1}</div>
                         <div className={styles.teamInfo}>
                           <h3>{entry.teamName}</h3>
-                          <p>{entry.description}</p>
+                          {entry.description && <p>{entry.description}</p>}
                         </div>
                         <div className={styles.score}>
-                          <strong>{entry.score.toFixed(2)}</strong>
-                          <span>Final Score</span>
+                          <strong>
+                            {typeof entry.score === "number"
+                              ? Number.isInteger(entry.score)
+                                ? entry.score
+                                : entry.score.toFixed(2)
+                              : "—"}
+                          </strong>
+                          <span>
+                            {typeof entry.score === "number"
+                              ? entry.scoreLabel ?? "Final Score"
+                              : "Finalist"}
+                          </span>
                         </div>
                       </article>
                     ))
@@ -184,6 +200,31 @@ export default function RankingsPage() {
                       </article>
                     ))}
               </div>
+
+              {category.finalists.length > 0 && (
+                <div className={styles.ctaPanel}>
+                  <div className={styles.ctaText}>
+                    <h3>Registrasi Ulang Finalis</h3>
+                    <p>
+                      Finalis wajib melakukan registrasi ulang. Pastikan nama ketua
+                      tim dan nama tim telah diisi sebelum pesan dikirimkan ke
+                      contact person.
+                    </p>
+                  </div>
+                  <a
+                    className={styles.ctaButton}
+                    href={getAdminWhatsAppUrl(category.id, category.label)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.05-.52-.099-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+                      <path d="M20.52 3.449A11.815 11.815 0 0 0 11.999 0C5.373 0 .001 5.373.001 11.999c0 2.117.553 4.184 1.604 6.005L0 24l6.132-1.605a11.94 11.94 0 0 0 5.866 1.533h.005c6.625 0 11.998-5.373 11.998-11.999 0-3.206-1.249-6.219-3.48-8.48zM11.999 21.785h-.004a9.87 9.87 0 0 1-5.03-1.378l-.36-.214-3.741.98 1-3.648-.235-.374a9.86 9.86 0 0 1-1.511-5.26c0-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.002 5.45-4.437 9.886-9.888 9.886z" />
+                    </svg>
+                    Hubungi Admin WA
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </section>

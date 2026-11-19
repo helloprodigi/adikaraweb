@@ -77,7 +77,7 @@
   background-size: 620px auto;
   height: 520px;
   left: 0;
-  opacity: 0.16;
+  opacity: 0.09;
   position: absolute;
   right: 0;
   top: 0;
@@ -163,9 +163,15 @@
   padding: 32px 42px;
 }
 
+.scoreCardText {
+  flex: 1;
+  min-width: 0;
+}
+
 .scoreCard h1 {
   font-size: clamp(34px, 4.5vw, 46px);
   margin: 0 0 6px;
+  overflow-wrap: anywhere;
 }
 
 .scoreCard p {
@@ -173,7 +179,15 @@
   margin: 0;
 }
 
+.scoreCard .teamMeta {
+  font-size: 15px;
+  margin-top: 10px;
+  opacity: 0.88;
+  overflow-wrap: anywhere;
+}
+
 .finalScore {
+  flex-shrink: 0;
   text-align: right;
 }
 
@@ -190,6 +204,7 @@
 }
 
 .evaluation {
+  --row-pad: 30px;
   background: #fff;
   border-radius: 16px;
   margin-top: 40px;
@@ -209,11 +224,11 @@
 }
 
 .evaluation::before {
-  left: calc(30px + 0.545455 * (100% - 60px));
+  left: calc(var(--row-pad) + 0.545455 * (100% - var(--row-pad) * 2));
 }
 
 .evaluation::after {
-  left: calc(30px + 0.772727 * (100% - 60px));
+  left: calc(var(--row-pad) + 0.772727 * (100% - var(--row-pad) * 2));
 }
 
 .tableHeader,
@@ -231,12 +246,18 @@
   color: #fff;
   font-size: 18px;
   font-weight: 700;
-  padding: 18px 30px;
+  padding: 18px var(--row-pad);
 }
 
 .tableHeader span:not(:first-child) {
   place-self: center;
   text-align: center;
+}
+
+/* Kolom terakhir secara visual lebih lebar karena padding kanan tabel ikut
+   terlihat. Geser isinya setengah padding agar benar-benar di tengah. */
+.tableHeader span:last-child {
+  margin-left: var(--row-pad);
 }
 
 .criterion,
@@ -255,7 +276,7 @@
   position: relative;
   z-index: 3;
   min-height: 74px;
-  padding: 16px 30px;
+  padding: 16px var(--row-pad);
 }
 
 .criterionMain > h3 {
@@ -267,6 +288,10 @@
 .criterionMain > .weight,
 .criterionMain > .judgeScore {
   place-self: center;
+}
+
+.criterionMain > .judgeScore {
+  margin-left: var(--row-pad);
 }
 
 .weight {
@@ -324,6 +349,7 @@
   font-size: 12px;
   line-height: 1.4;
   margin: 0;
+  white-space: pre-line;
 }
 
 .totalRow {
@@ -333,7 +359,7 @@
   border-top: 0;
   border-radius: 0 0 16px 16px;
   min-height: 76px;
-  padding: 16px 30px;
+  padding: 16px var(--row-pad);
   position: relative;
   z-index: 1;
 }
@@ -361,6 +387,7 @@
   color: #c9070f;
   font-size: 28px;
   font-weight: 700;
+  margin-left: var(--row-pad);
   place-self: center;
   text-align: center;
 }
@@ -380,15 +407,19 @@
   }
 
   .evaluation::before {
-    left: calc(14px + 0.538462 * (100% - 28px));
+    left: calc(var(--row-pad) + 0.538462 * (100% - var(--row-pad) * 2));
   }
 
   .evaluation::after {
-    left: calc(14px + 0.769231 * (100% - 28px));
+    left: calc(var(--row-pad) + 0.769231 * (100% - var(--row-pad) * 2));
   }
 }
 
 @media (max-width: 700px) {
+  .evaluation {
+    --row-pad: 14px;
+  }
+
   .hero {
     min-height: 0;
     padding: 130px 16px var(--section-space);
@@ -462,12 +493,6 @@
 
   .tableHeader {
     font-size: 12px;
-    padding: 18px 14px;
-  }
-
-  .criterionMain,
-  .totalRow {
-    padding-inline: 14px;
   }
 
   .criterionMain h3 {
@@ -490,6 +515,10 @@
 }
 
 @media (max-width: 420px) {
+  .evaluation {
+    --row-pad: 10px;
+  }
+
   .hero {
     padding: 120px 12px var(--section-space);
   }
@@ -529,13 +558,12 @@
 
   .tableHeader {
     font-size: 11px;
-    padding: 14px 10px;
+    padding-block: 14px;
   }
 
   .criterionMain,
   .totalRow {
     min-height: 0;
-    padding-inline: 10px;
   }
 
   .criterionMain h3 {
