@@ -62,7 +62,6 @@ function AnimatedCriterionRow({
     <article className={styles.criterion}>
       <div className={styles.criterionMain}>
         <h3>{criterion.title}</h3>
-        <span className={styles.weight}>{criterion.weight ?? "—"}</span>
         <strong
           className={`${styles.judgeScore} ${
             isStarted ? styles.judgeScoreVisible : styles.judgeScoreHidden
@@ -164,7 +163,6 @@ export function TeamScore() {
   }
 
   const { nim, teamName, leaderName, division, category, criteria, totalLabel, rank } = record;
-  const hasWeights = criteria.some((criterion) => Boolean(criterion.weight));
   // Cadangkan ruang untuk angka animasi supaya lebar kartu tidak berubah-ubah
   // saat hitungan berjalan (nama tim panjang jadi tidak berpindah-pindah).
   const scoreSlotWidth = `${record.totalScore.toFixed(2).length + 1}ch`;
@@ -217,7 +215,6 @@ export function TeamScore() {
               <h2 id="evaluation-title" className={styles.srOnly}>Evaluation Criteria</h2>
               <div className={styles.tableHeader}>
                 <span>Evaluation Criteria</span>
-                <span>Weight</span>
                 <span>Judge Score</span>
               </div>
               {criteria.map((criterion, index) => (
@@ -230,7 +227,6 @@ export function TeamScore() {
               ))}
               <div className={styles.totalRow}>
                 <strong>Total</strong>
-                <strong>{hasWeights ? "100%" : "—"}</strong>
                 <strong>{formatScore(animatedScore)}</strong>
               </div>
             </section>

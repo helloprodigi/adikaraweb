@@ -270,7 +270,7 @@ export function RankingTour() {
               onChange={(event) => setDontShowAgain(event.target.checked)}
             />
             <span aria-hidden="true" />
-            Dont show again
+            Don&apos;t show again
           </label>
 
           <div className="ranking-tour-buttons">

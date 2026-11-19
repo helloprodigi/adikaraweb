@@ -232,30 +232,22 @@
   position: relative;
 }
 
-.evaluation::before,
-.evaluation::after {
+.evaluation::before {
   background: #d5d6dd;
   bottom: 0;
   content: "";
+  left: calc(var(--row-pad) + 0.705882 * (100% - var(--row-pad) * 2));
   position: absolute;
   top: 0;
   width: 1px;
   z-index: 2;
 }
 
-.evaluation::before {
-  left: calc(var(--row-pad) + 0.545455 * (100% - var(--row-pad) * 2));
-}
-
-.evaluation::after {
-  left: calc(var(--row-pad) + 0.772727 * (100% - var(--row-pad) * 2));
-}
-
 .tableHeader,
 .criterionMain,
 .totalRow {
   display: grid;
-  grid-template-columns: 1.8fr 0.75fr 0.75fr;
+  grid-template-columns: 1.8fr 0.75fr;
 }
 
 .tableHeader {
@@ -305,27 +297,9 @@
   margin: 0;
 }
 
-.criterionMain > .weight,
-.criterionMain > .judgeScore {
-  place-self: center;
-}
-
 .criterionMain > .judgeScore {
   margin-left: var(--row-pad);
-}
-
-.weight {
-  align-self: center;
-  background: #f1f2f3;
-  border-radius: 18px;
-  color: #5c6073;
-  font-size: 16px;
-  font-weight: 700;
-  justify-self: center;
-  min-width: 98px;
-  padding: 12px 20px;
-  text-align: center;
-  width: max-content;
+  place-self: center;
 }
 
 .judgeScore {
@@ -391,15 +365,6 @@
   justify-self: start;
   margin: 0;
   text-align: left;
-}
-
-.totalRow strong:nth-child(2) {
-  align-self: center;
-  color: #10142b;
-  font-size: 20px;
-  font-weight: 700;
-  place-self: center;
-  text-align: center;
 }
 
 .totalRow strong:last-child {
@@ -509,7 +474,7 @@
   .tableHeader,
   .criterionMain,
   .totalRow {
-    grid-template-columns: 1.4fr 0.6fr 0.6fr;
+    grid-template-columns: 1.4fr 0.6fr;
   }
 
   .tableHeader {
@@ -518,12 +483,6 @@
 
   .criterionMain h3 {
     font-size: 13px;
-  }
-
-  .weight {
-    font-size: 11px;
-    min-width: 58px;
-    padding: 9px 8px;
   }
 
   .judgeScore {
@@ -592,21 +551,11 @@
     line-height: 1.3;
   }
 
-  .weight {
-    font-size: 10px;
-    min-width: 46px;
-    padding: 7px 6px;
-  }
-
   .judgeScore {
     font-size: 18px;
   }
 
   .totalRow strong:first-child {
-    font-size: 15px;
-  }
-
-  .totalRow strong:nth-child(2) {
     font-size: 15px;
   }
 
