@@ -1,6 +1,6 @@
-// Waktu reveal absolut: 19 Nov 2026 18:00 WIB = 11:00 UTC.
+// Waktu reveal absolut: 19 Nov 2026 15:52 WIB = 08:52 UTC.
 // Memakai UTC timestamp supaya tidak bergantung pada jam device pengguna.
-export const REVEAL_AT_MS = Date.UTC(2026, 10, 19, 11, 0, 0);
+export const REVEAL_AT_MS = Date.UTC(2026, 10, 19, 8, 52, 0);
 
 export type RevealStatus = {
   isRevealed: boolean;
