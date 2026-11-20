@@ -1,0 +1,14 @@
+services:
+  adikara:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: adikara:latest
+    container_name: adikara
+    restart: unless-stopped
+    stop_grace_period: 30s
+    env_file:
+      - .env
+    ports:
+      # Only Caddy on the host should reach the app. Do not expose 3000 publicly.
+      - "127.0.0.1:3000:3000"
