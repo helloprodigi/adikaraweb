@@ -1,225 +1,170 @@
-# Migrasi Adikara dari Vercel ke VPS Ubuntu (Docker + Caddy)
+# Migrasi Adikara 2026 → VPS Prodigi (Docker + Caddy)
 
-Target: `https://adikara.helloprodigi.pro` di VPS Ubuntu yang **sudah menjalankan Caddy**
-dengan automatic HTTPS. Aplikasi dijalankan sebagai container Docker dan hanya
-terdengar di `127.0.0.1:3000`; Caddy yang memegang 80/443.
+## Fakta environment VPS (hasil inspeksi)
 
-> **Aturan penting:** jangan mengubah aplikasi atau Blok/route Caddy lain. File Caddy
-> Adikara ditambahkan sebagai file site terpisah. Jika perlu menyentuh Caddyfile utama,
-> cukup tambahkan satu baris `import` di level paling atas.
+- VPS: `43.173.39.227`, Ubuntu 24.04.4 LTS, akses `ssh vps-prodigi`.
+- Caddy **berjalan sebagai container** `caddy` (`caddy:2`), bukan systemd.
+- Config Caddy: `/srv/proxy/Caddyfile`. Reload: `/srv/proxy/reload.sh`.
+- Semua app berbagi network Docker `web` (external). Caddy proxy ke **nama container**, bukan `127.0.0.1`.
+- Sudah ada app lain — **jangan disentuh**:
+  - `/srv/apps/helloprodigi` → `helloprodigi-app`, domain `helloprodigi.pro`
+  - `/srv/apps/myprodigi` → `myprodigi-app`, domain `my.helloprodigi.pro`
+  - `/srv/apps/adikara` → `adikara-app`, domain `dm.helloprodigi.pro` (**ini app data-mining, bukan repo ini**)
+- Karena itu app ini memakai nama berbeda:
+  - Path: `/srv/apps/adikara-web`
+  - Project compose: `adikaraweb`
+  - Container: `adikara-web`
+  - Image: `adikara-web:latest`
+  - Domain: `adikara.helloprodigi.pro`
+
+> **Aturan:** hanya menambah blok site baru di Caddyfile. Jangan edit blok domain lain.
 
 ---
 
-## 0. Verifikasi DNS dulu (sebelum HTTPS)
+## 0. DNS dulu
 
-Domain saat ini masih mengarah ke Vercel. Pindahkan A/AAAA record
-`adikara.helloprodigi.pro` ke IP publik VPS, lalu tunggu propagasi.
+Saat ini `adikara.helloprodigi.pro` masih mengarah ke Vercel:
 
 ```bash
-# Di komputer/local atau VPS
+dig +short CNAME adikara.helloprodigi.pro
 dig +short A adikara.helloprodigi.pro
-curl -4 https://ifconfig.me
 ```
 
-Keduanya **harus sama** dengan IP VPS. Jangan lanjut ke langkah Caddy kalau belum
-cocok — Caddy akan gagal mengambil sertifikat Let's Encrypt.
+Ganti DNS ke A record `43.173.39.227`, lalu tunggu propagasi. Jangan lanjut ke langkah
+Caddy sebelum hasil `dig +short A adikara.helloprodigi.pro` = `43.173.39.227`.
 
 ---
 
-## 1. Siapkan VPS
+## 1. Kirim kode ke VPS
+
+Pola deploy VPS ini memakai `git archive` dari laptop (tidak perlu deploy key GitHub di VPS).
+Dari folder repo ini di laptop:
 
 ```bash
-sudo apt update
-sudo apt install -y git ca-certificates curl
-
-# Install Docker + Compose plugin kalau belum ada
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker "$USER"
-newgrp docker
-
-docker --version
-docker compose version
+git fetch origin main
+git archive --format=tar origin/main | ssh vps-prodigi \
+  'mkdir -p /srv/apps/adikara-web/src.new && rm -rf /srv/apps/adikara-web/src.new/* && tar -x -C /srv/apps/adikara-web/src.new && rm -rf /srv/apps/adikara-web/src && mv /srv/apps/adikara-web/src.new /srv/apps/adikara-web/src'
+ssh vps-prodigi 'echo $(git rev-parse --short origin/main) > /srv/apps/adikara-web/src/.deployed-commit'
 ```
 
-Buat direktori deploy (ganti user kalau perlu):
+Salin compose file dan Caddy snippet:
 
 ```bash
-sudo mkdir -p /srv/adikara
-sudo chown -R "$USER":"$USER" /srv/adikara
+scp docker-compose.yml vps-prodigi:/srv/apps/adikara-web/docker-compose.yml
+scp deploy/caddy/adikara.caddy vps-prodigi:/srv/proxy/adikara.caddy
 ```
 
-### Deploy key GitHub
+> Kalau lebih mau pakai deploy key GitHub, itu juga boleh — tapi pola `git archive`
+> di atas sudah sesuai README VPS dan tidak mengubah repo lain.
 
-Repo bersifat private dan clone memakai SSH. Buat key khusus VPS:
+---
 
-```bash
-ssh-keygen -t ed25519 -C "adikara-vps" -f ~/.ssh/adikara_deploy
-cat ~/.ssh/adikara_deploy.pub
-```
+## 2. Environment
 
-Tambahkan public key tersebut ke **GitHub repo → Settings → Deploy keys → Add deploy key**.
-Centang **Allow write access tidak perlu** (read-only cukup untuk `git pull`).
-
-Agar SSH otomatis memakai key itu:
+Buat `.env` di `/srv/apps/adikara-web`. Secret HMAC reveal **harus** diisi; kalau ada
+cookie score-check dari Vercel dan ingin tetap valid, pakai nilai `ADIKARA_REVEAL_SECRET`
+yang sama dengan di Vercel.
 
 ```bash
-cat >> ~/.ssh/config <<'EOF'
-Host github-adikara
-  HostName github.com
-  User git
-  IdentityFile ~/.ssh/adikara_deploy
-  IdentitiesOnly yes
+ssh vps-prodigi
+cd /srv/apps/adikara-web
+cat > .env <<'EOF'
+ADIKARA_REVEAL_SECRET=isi-dengan-secret-yang-sama-seperti-di-vercel
+NODE_ENV=production
+PORT=3000
+HOSTNAME=0.0.0.0
+NEXT_TELEMETRY_DISABLED=1
 EOF
-chmod 600 ~/.ssh/config
+chmod 600 .env
 ```
 
-Clone dengan alias host tersebut:
-
-```bash
-cd /srv
-git clone git@github-adikara:helloprodigi/adikaraweb.git adikara
-cd /srv/adikara
-git status -sb
-```
+Tanpa nilai itu aplikasi masih jalan memakai fallback hard-coded, tetapi sebaiknya
+diganti dengan secret produksi.
 
 ---
 
-## 2. Environment produksi
-
-File `.env` tidak ikut ter-commit. Buat dari contoh:
+## 3. Build & jalankan
 
 ```bash
-cd /srv/adikara
-cp .env.example .env
-openssl rand -base64 32
-```
-
-Tempel hasil `openssl` ke `ADIKARA_REVEAL_SECRET` di `.env`.
-
-```bash
-nano .env
-```
-
-> **Penting:** kalau pengguna sudah punya cookie score-check dari Vercel, pakai
-> **nilai `ADIKARA_REVEAL_SECRET` yang sama seperti di Vercel** supaya cookie lama
-> tidak langsung invalid. Kalau beda, pengguna cukup mengisi NIM lagi karena reveal
-> sudah lewat, tetapi akan terasa seperti " logout ".
-
----
-
-## 3. Build & jalankan container
-
-```bash
-cd /srv/adikara
+cd /srv/apps/adikara-web
 docker compose up -d --build
 docker compose ps
-docker compose logs -f adikara
+docker logs -f --tail 50 adikara-web
 ```
 
-Cek lokal sebelum Caddy dipasang:
+Cek internal (dari container Caddy atau container lain di network `web`):
 
 ```bash
-curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:3000
+docker run --rm --network web curlimages/curl:latest -fsS -o /dev/null -w '%{http_code}\n' http://adikara-web:3000
 # harus 200
 ```
 
-Port 3000 **tidak boleh** dibuka ke publik. Compose sudah membatasi ke loopback.
-Kalau pakai UFW, cukup izinkan 80/443 (Caddy):
+Atau cek dari dalam container itu sendiri:
 
 ```bash
-sudo ufw status
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+docker exec adikara-web node -e "fetch('http://127.0.0.1:3000/').then(r=>console.log(r.status))"
 ```
+
+Container **tidak membuka port ke host**; hanya reachable lewat network `web`.
 
 ---
 
-## 4. Tambahkan route Caddy (aman, tidak menyentuh route lain)
+## 4. Pasang route Caddy (setelah DNS sesuai)
 
-Lihat dulu struktur Caddyfile yang ada:
+Tambahkan blok berikut di akhir `/srv/proxy/Caddyfile` (append, jangan ubah blok lain):
 
-```bash
-sudo caddy validate --config /etc/caddy/Caddyfile
-grep -n "import" /etc/caddy/Caddyfile || true
+```caddyfile
+adikara.helloprodigi.pro {
+	encode zstd gzip
+	reverse_proxy adikara-web:3000
+}
 ```
 
-### Kasus A — sudah ada import directory
-
-Kalau ada baris seperti `import /etc/caddy/sites/*.caddy`, tinggal taruh file:
+Perintah aman:
 
 ```bash
-sudo mkdir -p /etc/caddy/sites
-sudo cp deploy/caddy/adikara.caddy /etc/caddy/sites/adikara.caddy
-sudo chown root:root /etc/caddy/sites/adikara.caddy
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+sudo cp /srv/proxy/Caddyfile /srv/proxy/Caddyfile.bak.$(date +%F-%H%M)
+cat /srv/proxy/adikara.caddy >> /srv/proxy/Caddyfile
+docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+/srv/proxy/reload.sh
+docker logs --tail 50 caddy
 ```
 
-### Kasus B — belum ada import
-
-Backup dulu, lalu tambahkan **satu baris** di level paling atas Caddyfile (di luar
-blok site mana pun). Ini tidak mengubah route yang sudah ada.
-
-```bash
-sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak.$(date +%F-%H%M)
-sudo mkdir -p /etc/caddy/sites
-sudo cp deploy/caddy/adikara.caddy /etc/caddy/sites/adikara.caddy
-sudo vim /etc/caddy/Caddyfile
-# Tambahkan di baris paling atas:
-#   import /etc/caddy/sites/*.caddy
-
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
-sudo journalctl -u caddy -n 50 --no-pager
-```
-
-Kalau Caddy justru berjalan sebagai container di Docker network yang sama,
-ganti upstream di `adikara.caddy` menjadi `reverse_proxy adikara:3000`.
+Caddy akan mengambil sertifikat Let's Encrypt otomatis kalau DNS sudah mengarah ke VPS.
 
 ---
 
-## 5. Uji produksi
+## 5. Verifikasi
 
 ```bash
+dig +short A adikara.helloprodigi.pro   # 43.173.39.227
 curl -I https://adikara.helloprodigi.pro
-curl -fsS https://adikara.helloprodigi.pro/ | head -c 200
-```
-
-Cek juga halaman yang memakai data server:
-
-```bash
 curl -I https://adikara.helloprodigi.pro/rankings
 curl -I https://adikara.helloprodigi.pro/team-score
 ```
 
-Setelah semua OK, domain boleh dilepas dari Vercel (opsional, sebagai cleanup).
-Vercel bisa dibiarkan aktif sebagai rollback sampai DNS benar-benar stabil.
+Pastikan empat domain lama tetap hidup:
+
+```bash
+curl -I https://helloprodigi.pro
+curl -I https://my.helloprodigi.pro
+curl -I https://dm.helloprodigi.pro
+```
+
+Setelah semuanya OK, domain bisa dilepas dari Vercel. Vercel bisa dibiarkan sebagai
+rollback sampai DNS stabil.
 
 ---
 
-## 6. Update aplikasi berikutnya
+## 6. Update berikutnya
 
 ```bash
-cd /srv/adikara
-git pull --ff-only
-docker compose up -d --build
-docker image prune -f
+# dari laptop, arahkan ke commit terbaru
+git fetch origin main
+git archive --format=tar origin/main | ssh vps-prodigi \
+  'cd /srv/apps/adikara-web && rm -rf src.new && mkdir src.new && tar -x -C src.new && rm -rf src && mv src.new src'
+ssh vps-prodigi 'cd /srv/apps/adikara-web && docker compose up -d --build && docker image prune -f'
 ```
 
-Rollback cepat: arahkan DNS kembali ke Vercel, atau:
-
-```bash
-cd /srv/adikara
-git checkout <commit-sebelumnya>
-docker compose up -d --build
-```
-
----
-
-## Catatan aplikasi
-
-- Node minimal 20.9; image memakai `node:22-bookworm-slim`.
-- Next.js memakai `output: "standalone"`, jadi image runtime tidak perlu `npm install`.
-- Reveal tetap server-authoritative (18:00 WIB, berdasarkan jam server).
-- `ADIKARA_REVEAL_SECRET` hanya dibaca di server, tidak pernah masuk client bundle.
-- Data HP tidak ikut response API / bundle client.
+Rollback: arahkan DNS kembali ke Vercel, atau deploy commit lama dengan pola `git archive`
+di atas.

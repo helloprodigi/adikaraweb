@@ -1,10 +1,8 @@
-# Add this as a separate site file, e.g. /etc/caddy/sites/adikara.caddy,
-# imported from the main Caddyfile. It does not touch any existing route.
-#
-# If Caddy itself runs in Docker on a shared network, change the upstream to
-# the container name (e.g. reverse_proxy adikara:3000) instead of 127.0.0.1.
+# Site baru untuk scoreboard Adikara 2026.
+# Taruh sebagai blok tambahan di /srv/proxy/Caddyfile (jalankan /srv/proxy/reload.sh).
+# Jangan mengubah blok helloprodigi.pro, my.helloprodigi.pro, atau dm.helloprodigi.pro.
 
 adikara.helloprodigi.pro {
 	encode zstd gzip
-	reverse_proxy 127.0.0.1:3000
+	reverse_proxy adikara-web:3000
 }

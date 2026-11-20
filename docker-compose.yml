@@ -1,14 +1,29 @@
+name: adikaraweb
+
 services:
-  adikara:
+  app:
     build:
-      context: .
-      dockerfile: Dockerfile
-    image: adikara:latest
-    container_name: adikara
+      context: ./src
+      dockerfile: ../Dockerfile
+    image: adikara-web:latest
+    container_name: adikara-web
+    env_file: .env
     restart: unless-stopped
     stop_grace_period: 30s
-    env_file:
-      - .env
-    ports:
-      # Only Caddy on the host should reach the app. Do not expose 3000 publicly.
-      - "127.0.0.1:3000:3000"
+    networks: [web]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.status<500?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  web:
+    external: true
