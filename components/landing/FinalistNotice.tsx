@@ -25,8 +25,9 @@ export function FinalistNotice() {
       </h2>
 
       <p className={styles.body}>
-        Selamat kepada tim yang berhasil melaju ke Final ADIKARA 2026! Hasil
-        penjurian dan daftar tim finalis kini dapat dilihat melalui menu{" "}
+        Selamat kepada tim dan peserta yang berhasil melaju ke Final ADIKARA
+        2026! Hasil penjurian dan daftar tim finalis kini dapat dilihat melalui
+        menu{" "}
         <Link href="/rankings" className={styles.link}>
           Rankings
         </Link>

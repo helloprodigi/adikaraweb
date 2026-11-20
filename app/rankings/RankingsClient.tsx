@@ -19,16 +19,13 @@ const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
 
 export default function RankingsClient({
   initialServerNow,
-  initialHasChecked,
   categories,
 }: {
   initialServerNow: number;
-  initialHasChecked: boolean;
   categories: FinalistCategory[];
 }) {
   const { openScoreGate } = useScoreGate();
   const { isRevealed, remainingMs } = useServerClock(initialServerNow);
-  const [hasChecked, setHasChecked] = useState(initialHasChecked);
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isVisible, setIsVisible] = useState(false);
   const [rankingsVisible, setRankingsVisible] = useState(false);
@@ -40,6 +37,10 @@ export default function RankingsClient({
   const category = categories.find((item) => item.id === activeCategory) ?? categories[0];
   const hideRanks = category.id === "innovation";
   const visibleFinalists = category.finalists;
+  const placeholderDescription =
+    category.id === "data-mining"
+      ? "Stay tune, 22 November 2026"
+      : PLACEHOLDER_DESCRIPTION;
 
   useEffect(() => {
     const element = pageRef.current;
@@ -57,7 +58,7 @@ export default function RankingsClient({
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [isRevealed, hasChecked]);
+  }, [isRevealed]);
 
   useEffect(() => {
     const element = rankingsRef.current;
@@ -75,7 +76,7 @@ export default function RankingsClient({
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [isRevealed, hasChecked]);
+  }, [isRevealed]);
 
   // True on the server and on the first client render alike, so the block ships
   // hidden and React has nothing to reconcile. It is only dropped once the
@@ -100,15 +101,13 @@ export default function RankingsClient({
 
     setNimError("");
     try {
-      const response = await fetch("/api/score-check", {
+      await fetch("/api/score-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nim: trimmedNim }),
       });
-      if (response.ok) setHasChecked(true);
     } catch {
-      // Score check tetap bisa jalan; leaderboard hanya terbuka jika server
-      // berhasil menyimpan tanda yang valid.
+      // Score check tetap membuka halaman detail tim walau request gagal.
     }
     // The gate lives above the router, so the countdown and the drop keep
     // playing while the score page is loaded behind them.
@@ -178,14 +177,13 @@ export default function RankingsClient({
           </div>
         </section>
 
-        {hasChecked ? (
-          <section
-            ref={rankingsRef}
-            className={`${styles.rankingsSection} ${
-              isPending ? styles.rankingsPending : ""
-            } ${rankingsVisible ? styles.rankingsVisible : ""}`}
-            aria-labelledby="ranking-list-title"
-          >
+        <section
+          ref={rankingsRef}
+          className={`${styles.rankingsSection} ${
+            isPending ? styles.rankingsPending : ""
+          } ${rankingsVisible ? styles.rankingsVisible : ""}`}
+          aria-labelledby="ranking-list-title"
+        >
             <div className={styles.content}>
               <div className={styles.tabs} role="tablist" aria-label="Ranking categories">
                 {categories.map((item) => (
@@ -244,7 +242,7 @@ export default function RankingsClient({
                           {!hideRanks && <div className={styles.rank}>{index + 1}</div>}
                           <div className={styles.teamInfo}>
                             <h3>{PLACEHOLDER_NAME}</h3>
-                            <p>{PLACEHOLDER_DESCRIPTION}</p>
+                            <p>{placeholderDescription}</p>
                           </div>
                           <div className={styles.score}>
                             <strong>{PLACEHOLDER_SCORE}</strong>
@@ -280,12 +278,7 @@ export default function RankingsClient({
                 )}
               </div>
             </div>
-          </section>
-        ) : (
-          <section className={styles.lockedRankings} aria-labelledby="ranking-list-title">
-            <p>Cek nilai tim terlebih dahulu untuk membuka daftar finalis.</p>
-          </section>
-        )}
+        </section>
       </main>
       <Footer />
     </>
