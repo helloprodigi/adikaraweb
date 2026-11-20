@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ./src
-      dockerfile: ../Dockerfile
+      dockerfile: Dockerfile
     image: adikara-web:latest
     container_name: adikara-web
     env_file: .env
