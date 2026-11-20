@@ -127,7 +127,6 @@ export function Navbar() {
               href={item.href}
               className={pathname === item.href ? "is-active" : ""}
               onClick={handleNavClick}
-              data-tour={item.href === "/rankings" ? "rankings-link" : undefined}
             >
               {item.label}
             </Link>
@@ -182,7 +181,6 @@ export function Navbar() {
                 href={item.href}
                 className={pathname === item.href ? "is-active" : ""}
                 onClick={handleNavClick}
-                data-tour={item.href === "/rankings" ? "rankings-link" : undefined}
               >
                 {item.label}
               </Link>
