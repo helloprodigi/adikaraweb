@@ -2,9 +2,9 @@
 // Memakai UTC timestamp supaya tidak bergantung pada jam device pengguna.
 export const REVEAL_AT_MS = Date.UTC(2026, 10, 19, 11, 0, 0);
 
-// Data Mining punya jadwal sendiri: 22 Nov 2026 16:00 WIB = 09:00 UTC.
+// Data Mining punya jadwal sendiri: 22 Nov 2026 18:00 WIB = 11:00 UTC.
 // Kategori lain sudah terbuka, jadi hanya kategori ini yang masih dihitung.
-export const DATA_MINING_REVEAL_AT_MS = Date.UTC(2026, 10, 22, 9, 0, 0);
+export const DATA_MINING_REVEAL_AT_MS = Date.UTC(2026, 10, 22, 11, 0, 0);
 
 export type RevealStatus = {
   isRevealed: boolean;

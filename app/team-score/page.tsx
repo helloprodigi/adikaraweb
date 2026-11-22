@@ -45,7 +45,7 @@ export default async function TeamScorePage({
   );
 
   // Keputusan ini dibuat di server, bukan dari jam/penyimpanan browser dan tidak
-  // bisa dibypass dengan mengubah param URL atau cookie: sebelum jam 16:00 tidak
+  // bisa dibypass dengan mengubah param URL atau cookie: sebelum jam 18:00 tidak
   // ada data tim Data Mining yang dirender maupun dikirim ke klien.
   const dataMiningLocked = Boolean(
     competition &&

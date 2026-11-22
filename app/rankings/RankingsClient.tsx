@@ -128,10 +128,12 @@ export default function RankingsClient({
           locked?: string;
         };
         if (data.locked === "data-mining") {
-          // Data Mining tetap diputarkan lewat gate 5 → 1, lalu mendarat di
-          // halaman countdown resminya. Tidak ada data tim yang dikirim.
+          // Sebelum jamnya, langsung ke halaman countdown utama tanpa gate
+          // 5 → 1. Gate hanya dipakai setelah Data Mining dibuka.
           closeCompetitionChoice();
-          openScoreGate(checkedNim, "data-mining");
+          router.push(
+            `/team-score?nim=${encodeURIComponent(checkedNim)}&competition=data-mining`
+          );
           return;
         }
         if (response.status === 401) {
