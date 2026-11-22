@@ -1,13 +1,19 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { useScoreGate } from "@/components/rankings/ScoreGateProvider";
+import type {
+  ScoreCompetitionId,
+  ScoreCompetitionOption,
+} from "@/components/rankings/scoreCompetition";
 import type { FinalistCategory } from "@/components/rankings/finalists";
 import { getAdminWhatsAppUrl } from "@/components/rankings/adminWhatsapp";
 import { useServerClock } from "@/components/rankings/useServerClock";
+import { DataMiningCountdown } from "@/components/rankings/DataMiningCountdown";
 import { RevealLock } from "@/components/rankings/RevealLock";
 import styles from "./rankings.module.css";
 
@@ -20,27 +26,32 @@ const NIM_REQUIRED_MESSAGE = "Wajib isi NIM untuk checking nilai tim.";
 export default function RankingsClient({
   initialServerNow,
   categories,
+  dataMiningRevealed,
 }: {
   initialServerNow: number;
   categories: FinalistCategory[];
+  dataMiningRevealed: boolean;
 }) {
+  const router = useRouter();
   const { openScoreGate } = useScoreGate();
-  const { isRevealed, remainingMs } = useServerClock(initialServerNow);
+  const { isRevealed, remainingMs, dataMining } = useServerClock(initialServerNow);
   const [activeCategory, setActiveCategory] = useState(categories[0].id);
   const [isVisible, setIsVisible] = useState(false);
   const [rankingsVisible, setRankingsVisible] = useState(false);
   const [nim, setNim] = useState("");
   const [nimError, setNimError] = useState("");
+  const [pendingNim, setPendingNim] = useState("");
+  const [competitionOptions, setCompetitionOptions] = useState<
+    ScoreCompetitionOption[]
+  >([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const pageRef = useRef<HTMLElement>(null);
   const rankingsRef = useRef<HTMLElement>(null);
   const category = categories.find((item) => item.id === activeCategory) ?? categories[0];
   const hideRanks = category.id === "innovation";
   const visibleFinalists = category.finalists;
-  const placeholderDescription =
-    category.id === "data-mining"
-      ? "Stay tune, 22 November 2026"
-      : PLACEHOLDER_DESCRIPTION;
+  const isDataMiningLocked =
+    category.id === "data-mining" && !dataMiningRevealed;
 
   useEffect(() => {
     const element = pageRef.current;
@@ -78,14 +89,67 @@ export default function RankingsClient({
     return () => observer.disconnect();
   }, [isRevealed]);
 
+  // Begitu countdown Data Mining habis, refresh supaya server mengirim ulang
+  // halaman beserta data finalis yang sebelumnya sengaja tidak dikirim.
+  useEffect(() => {
+    if (dataMining.isRevealed && !dataMiningRevealed) router.refresh();
+  }, [dataMining.isRevealed, dataMiningRevealed, router]);
+
   // True on the server and on the first client render alike, so the block ships
   // hidden and React has nothing to reconcile. It is only dropped once the
   // section has scrolled into view and the reveal animation starts.
   const isPending = !rankingsVisible;
 
+  const closeCompetitionChoice = () => {
+    setPendingNim("");
+    setCompetitionOptions([]);
+  };
+
   const handleNimChange = (value: string) => {
     setNim(value);
     if (nimError) setNimError("");
+    if (pendingNim) closeCompetitionChoice();
+  };
+
+  const submitScoreCheck = async (
+    checkedNim: string,
+    selected: ScoreCompetitionId
+  ) => {
+    setNimError("");
+    try {
+      const response = await fetch("/api/score-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nim: checkedNim, competition: selected }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as {
+          locked?: string;
+        };
+        if (data.locked === "data-mining") {
+          // Server yang memutuskan lomba ini masih terkunci. Tampilkan countdown
+          // Data Mining dan jangan buka halaman skor sama sekali.
+          closeCompetitionChoice();
+          setActiveCategory("data-mining");
+          rankingsRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+          return;
+        }
+        if (response.status === 401) {
+          setNimError("NIM tidak ditemukan untuk lomba yang dipilih.");
+          return;
+        }
+      }
+    } catch {
+      // Score check tetap membuka halaman detail tim walau request gagal.
+    }
+    // Gate hidup di atas router supaya fade putih tetap menutupi layar selagi
+    // halaman skor dimuat di belakangnya.
+    closeCompetitionChoice();
+    openScoreGate(checkedNim, selected);
   };
 
   const handleScoreCheck = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -100,18 +164,42 @@ export default function RankingsClient({
     }
 
     setNimError("");
+    closeCompetitionChoice();
     try {
-      await fetch("/api/score-check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nim: trimmedNim }),
-      });
+      const response = await fetch(
+        `/api/score-check/options?nim=${encodeURIComponent(trimmedNim)}`,
+        { cache: "no-store" }
+      );
+
+      if (response.status === 404) {
+        setNimError("NIM tidak ditemukan.");
+        return;
+      }
+      if (!response.ok) {
+        setNimError("Gagal mengecek NIM. Silakan coba lagi.");
+        return;
+      }
+
+      const data = (await response.json()) as {
+        competitions?: ScoreCompetitionOption[];
+      };
+      const options = Array.isArray(data.competitions) ? data.competitions : [];
+
+      if (options.length === 0) {
+        setNimError("NIM tidak ditemukan.");
+        return;
+      }
+      if (options.length > 1) {
+        // Card hanya muncul kalau NIM memang terdaftar di lebih dari satu lomba.
+        setPendingNim(trimmedNim);
+        setCompetitionOptions(options);
+        return;
+      }
+
+      await submitScoreCheck(trimmedNim, options[0].id);
     } catch {
-      // Score check tetap membuka halaman detail tim walau request gagal.
+      setNimError("Gagal mengecek NIM. Silakan coba lagi.");
     }
-    // The gate lives above the router, so the countdown and the drop keep
-    // playing while the score page is loaded behind them.
-    openScoreGate(trimmedNim);
   };
 
   // `isRevealed` berasal dari waktu server (lihat useServerClock), bukan jam
@@ -139,6 +227,32 @@ export default function RankingsClient({
             <Image className={`${styles.panelOrnament} ${styles.panelOrnamentRight}`} src="/landing/vertical-decor.svg" alt="" width={390} height={756} />
             <h2 id="score-check-title">Check Your Team&apos;s Score</h2>
             <p>All Participants Can View Their Detailed Scores And Judges&apos; Feedback, Whether They Qualified For The Final Or Not.</p>
+            {pendingNim && competitionOptions.length > 1 && (
+              <div className={styles.competitionChoice} role="group" aria-label="Pilih lomba yang ingin dicek">
+                <p className={styles.competitionChoiceTitle}>
+                  NIM ini terdaftar di lebih dari satu lomba. Pilih lomba yang ingin dicek:
+                </p>
+                <div className={styles.competitionChoiceButtons}>
+                  {competitionOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={styles.competitionChoiceButton}
+                      onClick={() => void submitScoreCheck(pendingNim, option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className={styles.competitionChoiceCancel}
+                  onClick={closeCompetitionChoice}
+                >
+                  Batal
+                </button>
+              </div>
+            )}
             <form
               className={styles.searchForm}
               onSubmit={handleScoreCheck}
@@ -202,57 +316,63 @@ export default function RankingsClient({
 
               <div className={styles.rankings}>
                 <h2 id="ranking-list-title">Finalis {category.label}</h2>
-                <div className={styles.cardList} role="tabpanel">
-                  {visibleFinalists.length > 0
-                    ? visibleFinalists.map((entry, index) => (
-                        <article
-                          className={`${styles.rankingCard} ${hideRanks ? styles.noRankCard : ""}`}
-                          key={entry.teamId}
-                        >
-                          {!hideRanks && (
-                            <div className={styles.rank}>{entry.rank ?? index + 1}</div>
-                          )}
-                          <div className={styles.teamInfo}>
-                            <h3>{entry.teamName}</h3>
-                            {entry.description && <p>{entry.description}</p>}
-                          </div>
-                          <div className={styles.score}>
-                            <strong>
-                              {typeof entry.score === "number"
-                                ? Number.isInteger(entry.score)
-                                  ? entry.score
-                                  : entry.score.toFixed(2)
-                                : "—"}
-                            </strong>
-                            <span>
-                              {typeof entry.score === "number"
-                                ? entry.scoreLabel ?? "Final Score"
-                                : "Finalist"}
-                            </span>
-                          </div>
-                        </article>
-                      ))
-                    : Array.from({ length: 5 }, (_, index) => (
-                        <article
-                          className={`${styles.rankingCard} ${styles.placeholderCard} ${
-                            hideRanks ? styles.noRankCard : ""
-                          }`}
-                          key={`placeholder-${category.id}-${index}`}
-                        >
-                          {!hideRanks && <div className={styles.rank}>{index + 1}</div>}
-                          <div className={styles.teamInfo}>
-                            <h3>{PLACEHOLDER_NAME}</h3>
-                            <p>{placeholderDescription}</p>
-                          </div>
-                          <div className={styles.score}>
-                            <strong>{PLACEHOLDER_SCORE}</strong>
-                            <span>Final Score</span>
-                          </div>
-                        </article>
-                      ))}
-                </div>
+                {isDataMiningLocked ? (
+                  <DataMiningCountdown remainingMs={dataMining.remainingMs} />
+                ) : (
+                  <div className={styles.cardList} role="tabpanel">
+                    {visibleFinalists.length > 0
+                      ? visibleFinalists.map((entry, index) => (
+                          <article
+                            className={`${styles.rankingCard} ${hideRanks ? styles.noRankCard : ""}`}
+                            key={entry.teamId}
+                          >
+                            {!hideRanks && (
+                              <div className={styles.rank}>{entry.rank ?? index + 1}</div>
+                            )}
+                            <div className={styles.teamInfo}>
+                              <h3>{entry.teamName}</h3>
+                              {entry.description && <p>{entry.description}</p>}
+                            </div>
+                            <div className={styles.score}>
+                              <strong>
+                                {typeof entry.score === "number"
+                                  ? Number.isInteger(entry.score)
+                                    ? entry.score
+                                    : entry.score.toFixed(
+                                        entry.scoreLabel === "RMSLE" ? 3 : 2
+                                      )
+                                  : "—"}
+                              </strong>
+                              <span>
+                                {typeof entry.score === "number"
+                                  ? entry.scoreLabel ?? "Final Score"
+                                  : "Finalist"}
+                              </span>
+                            </div>
+                          </article>
+                        ))
+                      : Array.from({ length: 5 }, (_, index) => (
+                          <article
+                            className={`${styles.rankingCard} ${styles.placeholderCard} ${
+                              hideRanks ? styles.noRankCard : ""
+                            }`}
+                            key={`placeholder-${category.id}-${index}`}
+                          >
+                            {!hideRanks && <div className={styles.rank}>{index + 1}</div>}
+                            <div className={styles.teamInfo}>
+                              <h3>{PLACEHOLDER_NAME}</h3>
+                              <p>{PLACEHOLDER_DESCRIPTION}</p>
+                            </div>
+                            <div className={styles.score}>
+                              <strong>{PLACEHOLDER_SCORE}</strong>
+                              <span>Final Score</span>
+                            </div>
+                          </article>
+                        ))}
+                  </div>
+                )}
 
-                {visibleFinalists.length > 0 && (
+                {!isDataMiningLocked && visibleFinalists.length > 0 && (
                   <div className={styles.ctaPanel}>
                     <div className={styles.ctaText}>
                       <h3>Registrasi Ulang Finalis</h3>

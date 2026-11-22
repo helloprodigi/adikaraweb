@@ -25,10 +25,17 @@ export type TeamScoreRecord = {
   criteria: Criterion[];
 };
 
+import {
+  getCompetition,
+  SCORE_COMPETITIONS,
+  type ScoreCompetitionId,
+} from "../rankings/scoreCompetition";
 import { finalistCategories } from "../rankings/finalists";
 import { ctfRecords } from "./scoreData/ctf";
 import { ctfNonFinalists } from "./scoreData/ctfNonFinalists";
 import { cpRecords } from "./scoreData/cp";
+import { dataMiningRecords } from "./scoreData/dataMining";
+import { dataMiningNonFinalistRecords } from "./scoreData/dataMiningNonFinalists";
 import { entrepreneurshipRecords } from "./scoreData/entrepreneurship";
 import { innovationRecords } from "./scoreData/innovation";
 
@@ -50,6 +57,8 @@ const mergedRecords: TeamScoreRecord[] = [
   ...ctfRecords,
   ...ctfNonFinalists,
   ...cpRecords,
+  ...dataMiningRecords,
+  ...dataMiningNonFinalistRecords,
   ...entrepreneurshipRecords,
   ...innovationRecords,
 ].filter((record) => {
@@ -138,13 +147,34 @@ for (const category of new Set(mergedRecords.map((record) => record.category))) 
 
 export const teamScores: TeamScoreRecord[] = mergedRecords;
 
-export function findTeamByNim(nim: string | null | undefined): TeamScoreRecord | null {
-  if (!nim) return null;
-
-  const normalized = normalizeNim(nim.trim());
-  if (!normalized) return null;
-
-  return (
-    teamScores.find((record) => normalizeNim(record.nim) === normalized) ?? null
+function normalizedMatches(nim: string | null | undefined) {
+  const normalized = nim ? normalizeNim(nim.trim()) : "";
+  if (!normalized) return [];
+  return teamScores.filter(
+    (record) => normalizeNim(record.nim) === normalized
   );
+}
+
+// Dipakai untuk memutuskan apakah perlu menampilkan card pilihan lomba.
+export function findCompetitionsByNim(
+  nim: string | null | undefined
+): ScoreCompetitionId[] {
+  const categories = new Set(normalizedMatches(nim).map((record) => record.category));
+  return SCORE_COMPETITIONS.filter((competition) =>
+    categories.has(competition.category)
+  ).map((competition) => competition.id);
+}
+
+// Pencarian selalu dibatasi oleh lomba yang dipilih pengguna. NIM yang mengikuti
+// beberapa lomba punya beberapa record berbeda; pilihan pengguna yang menentukan
+// mana yang dibuka.
+export function findTeamByNim(
+  nim: string | null | undefined,
+  competition?: ScoreCompetitionId
+): TeamScoreRecord | null {
+  const matches = normalizedMatches(nim);
+  if (!competition) return matches[0] ?? null;
+
+  const category = getCompetition(competition)?.category;
+  return matches.find((record) => record.category === category) ?? null;
 }

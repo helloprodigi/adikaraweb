@@ -1,0 +1,8 @@
+.page {
+  align-items: center;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 140px 24px 80px;
+}

@@ -2,12 +2,18 @@
 
 import { createContext, useCallback, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { ScoreCompetitionId } from "./scoreCompetition";
 import { ScoreGateOverlay } from "./ScoreGateOverlay";
 
+type PendingScore = {
+  nim: string;
+  competition: ScoreCompetitionId;
+};
+
 type ScoreGateContextValue = {
-  // Starts the gate for a NIM and, once the countdown and the drop are done,
-  // moves on to that team's score page.
-  openScoreGate: (nim: string) => void;
+  // Starts the gate for a NIM and, once the fade is done, moves on to that
+  // team's score page for the competition the visitor chose.
+  openScoreGate: (nim: string, competition: ScoreCompetitionId) => void;
 };
 
 const ScoreGateContext = createContext<ScoreGateContextValue | null>(null);
@@ -19,26 +25,32 @@ const ScoreGateContext = createContext<ScoreGateContextValue | null>(null);
 // out and /team-score is revealed by the overlay clearing.
 export function ScoreGateProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [pendingNim, setPendingNim] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingScore | null>(null);
 
-  const openScoreGate = useCallback((nim: string) => {
-    setPendingNim(nim);
-  }, []);
+  const openScoreGate = useCallback(
+    (nim: string, competition: ScoreCompetitionId) => {
+      setPending({ nim, competition });
+    },
+    []
+  );
 
   const handleNavigate = useCallback(() => {
-    router.push(`/team-score?nim=${encodeURIComponent(pendingNim ?? "")}`);
-  }, [pendingNim, router]);
+    if (!pending) return;
+    router.push(
+      `/team-score?nim=${encodeURIComponent(pending.nim)}&competition=${pending.competition}`
+    );
+  }, [pending, router]);
 
   const handleFinish = useCallback(() => {
-    setPendingNim(null);
+    setPending(null);
   }, []);
 
   return (
     <ScoreGateContext.Provider value={{ openScoreGate }}>
       {children}
-      {pendingNim !== null && (
+      {pending && (
         <ScoreGateOverlay
-          nim={pendingNim}
+          nim={pending.nim}
           onNavigate={handleNavigate}
           onFinish={handleFinish}
         />

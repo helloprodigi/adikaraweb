@@ -1,18 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRevealStatus, type RevealStatus } from "./revealSchedule";
+import {
+  getDataMiningRevealStatus,
+  getRevealStatus,
+  type RevealStatus,
+} from "./revealSchedule";
 
-type ClockSnapshot = RevealStatus & { serverNow: number };
+type ClockSnapshot = RevealStatus & {
+  serverNow: number;
+  dataMining: RevealStatus;
+};
+
+function snapshotAt(serverNow: number): ClockSnapshot {
+  return {
+    serverNow,
+    ...getRevealStatus(serverNow),
+    dataMining: getDataMiningRevealStatus(serverNow),
+  };
+}
 
 export function useServerClock(initialServerNow: number): ClockSnapshot {
   // Baseline berasal dari server. `performance.now()` monotonic, jadi mengubah
   // jam device tidak bisa memutar mundur/maju countdown.
   const baseline = useRef({ server: initialServerNow, perf: 0 });
-  const [snapshot, setSnapshot] = useState<ClockSnapshot>(() => ({
-    serverNow: initialServerNow,
-    ...getRevealStatus(initialServerNow),
-  }));
+  const [snapshot, setSnapshot] = useState<ClockSnapshot>(() =>
+    snapshotAt(initialServerNow)
+  );
 
   const readClock = useCallback(() => {
     const { server, perf } = baseline.current;
@@ -26,7 +40,7 @@ export function useServerClock(initialServerNow: number): ClockSnapshot {
       const data = (await response.json()) as { serverNow?: number };
       if (typeof data.serverNow !== "number") return;
       baseline.current = { server: data.serverNow, perf: performance.now() };
-      setSnapshot({ serverNow: data.serverNow, ...getRevealStatus(data.serverNow) });
+      setSnapshot(snapshotAt(data.serverNow));
     } catch {
       // Gagal sync tidak mengubah baseline terakhir yang valid dari server.
     }
@@ -36,7 +50,7 @@ export function useServerClock(initialServerNow: number): ClockSnapshot {
     baseline.current = { server: initialServerNow, perf: performance.now() };
     const tick = window.setInterval(() => {
       const serverNow = readClock();
-      setSnapshot({ serverNow, ...getRevealStatus(serverNow) });
+      setSnapshot(snapshotAt(serverNow));
     }, 1000);
     const resync = window.setInterval(() => {
       void sync();

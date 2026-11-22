@@ -1,5 +1,7 @@
 import { connection } from "next/server";
 import {
+  DATA_MINING_REVEAL_AT_MS,
+  getDataMiningRevealStatus,
   getRevealStatus,
   getServerNow,
   REVEAL_AT_MS,
@@ -13,7 +15,9 @@ export async function GET() {
     {
       serverNow,
       revealAt: REVEAL_AT_MS,
+      dataMiningRevealAt: DATA_MINING_REVEAL_AT_MS,
       ...getRevealStatus(serverNow),
+      dataMining: getDataMiningRevealStatus(serverNow),
     },
     {
       headers: {

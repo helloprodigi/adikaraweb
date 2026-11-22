@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/landing/navbar";
 import type { Criterion, TeamScoreRecord } from "./teamScores";
 import { getAdminWhatsAppUrl } from "@/components/rankings/adminWhatsapp";
+import { isScoreCompetitionId } from "@/components/rankings/scoreCompetition";
 import { TeamNotFound } from "./TeamNotFound";
 import { JordanEasterEgg } from "@/components/easter-egg/JordanEasterEgg";
 import styles from "./TeamScore.module.css";
@@ -94,12 +95,15 @@ export function TeamScore() {
   const [isFinalScoreDone, setIsFinalScoreDone] = useState(false);
 
   const nimQuery = (searchParams.get("nim") ?? searchParams.get("id"))?.trim() ?? "";
+  const rawCompetition = searchParams.get("competition");
+  const competition = isScoreCompetitionId(rawCompetition) ? rawCompetition : null;
+  const lookupKey = `${competition ?? "default"}:${nimQuery}`;
   const [loaded, setLoaded] = useState<{
-    nim: string;
+    key: string;
     record: TeamScoreRecord | null;
   } | null>(null);
-  const record = loaded?.nim === nimQuery ? loaded.record : null;
-  const isLoading = loaded?.nim !== nimQuery;
+  const record = loaded?.key === lookupKey ? loaded.record : null;
+  const isLoading = loaded?.key !== lookupKey;
 
   const outcomeMessage = useMemo(() => {
     if (!record) return "";
@@ -138,23 +142,26 @@ export function TeamScore() {
     }
 
     let cancelled = false;
-    fetch(`/api/team-score?nim=${encodeURIComponent(nimQuery)}`, {
-      cache: "no-store",
-    })
+    fetch(
+      `/api/team-score?nim=${encodeURIComponent(nimQuery)}${
+        competition ? `&competition=${competition}` : ""
+      }`,
+      { cache: "no-store" }
+    )
       .then((response) =>
         response.ok ? (response.json() as Promise<TeamScoreRecord>) : null
       )
       .then((data) => {
-        if (!cancelled) setLoaded({ nim: nimQuery, record: data });
+        if (!cancelled) setLoaded({ key: lookupKey, record: data });
       })
       .catch(() => {
-        if (!cancelled) setLoaded({ nim: nimQuery, record: null });
+        if (!cancelled) setLoaded({ key: lookupKey, record: null });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [nimQuery, router]);
+  }, [nimQuery, competition, lookupKey, router]);
 
   useEffect(() => {
     const element = heroRef.current;
