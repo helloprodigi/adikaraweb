@@ -569,64 +569,62 @@
 }
 
 .competitionChoice {
-  background: #fff;
-  border: 2px solid #10142b;
-  border-radius: 0;
+  background: #c9070f;
+  border-radius: 24px;
   margin: 0 auto 18px;
-  max-width: 620px;
-  padding: 18px 20px 16px;
+  max-width: 680px;
+  padding: 22px;
   pointer-events: auto;
   position: relative;
   text-align: center;
   z-index: 11;
 }
 
-.competitionChoiceTitle {
-  color: #10142b;
+.competitionChoiceText {
+  color: #fff;
   font-size: 14px;
-  font-weight: 600;
   line-height: 1.5;
-  margin: 0 0 14px;
+  margin: 0 0 18px;
 }
 
-.competitionChoiceButtons {
+.competitionChoiceList {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
 }
 
-.competitionChoiceButton {
-  background: #c9070f;
-  border: 2px solid #c9070f;
-  border-radius: 0;
-  color: #fff;
+.competitionChoiceOption {
+  background: #fff;
+  border: 0;
+  border-radius: 999px;
+  color: #c9070f;
   cursor: pointer;
-  flex: 1 1 190px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  min-height: 42px;
-  padding: 0 12px;
-  transition: background 160ms ease;
+  min-height: 46px;
+  padding: 0 24px;
+  transition: background 180ms ease, transform 180ms ease;
 }
 
-.competitionChoiceButton:hover,
-.competitionChoiceButton:focus-visible {
-  background: #7f0005;
-  outline: 2px solid #10142b;
+.competitionChoiceOption:hover,
+.competitionChoiceOption:focus-visible {
+  background: #fff0f0;
+  outline: 2px solid #fff;
   outline-offset: 2px;
+  transform: translateY(-2px);
 }
 
 .competitionChoiceCancel {
   background: transparent;
   border: 0;
-  border-radius: 0;
-  color: #707585;
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
+  display: block;
   font: inherit;
   font-size: 12px;
-  margin-top: 12px;
+  margin: 14px auto 0;
   padding: 4px 8px;
   text-decoration: underline;
 }
@@ -925,10 +923,6 @@
   .panelOrnamentRight {
     bottom: -90px;
     right: -50px;
-  }
-
-  .competitionChoiceButton {
-    flex: 1 1 100%;
   }
 
   .searchForm {

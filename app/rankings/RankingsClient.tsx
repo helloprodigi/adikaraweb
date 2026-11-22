@@ -128,14 +128,10 @@ export default function RankingsClient({
           locked?: string;
         };
         if (data.locked === "data-mining") {
-          // Server yang memutuskan lomba ini masih terkunci. Tampilkan countdown
-          // Data Mining dan jangan buka halaman skor sama sekali.
+          // Data Mining tetap diputarkan lewat gate 5 → 1, lalu mendarat di
+          // halaman countdown resminya. Tidak ada data tim yang dikirim.
           closeCompetitionChoice();
-          setActiveCategory("data-mining");
-          rankingsRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+          openScoreGate(checkedNim, "data-mining");
           return;
         }
         if (response.status === 401) {
@@ -228,16 +224,16 @@ export default function RankingsClient({
             <h2 id="score-check-title">Check Your Team&apos;s Score</h2>
             <p>All Participants Can View Their Detailed Scores And Judges&apos; Feedback, Whether They Qualified For The Final Or Not.</p>
             {pendingNim && competitionOptions.length > 1 && (
-              <div className={styles.competitionChoice} role="group" aria-label="Pilih lomba yang ingin dicek">
-                <p className={styles.competitionChoiceTitle}>
-                  NIM ini terdaftar di lebih dari satu lomba. Pilih lomba yang ingin dicek:
+              <div className={styles.competitionChoice} role="group" aria-label="Pilih lomba">
+                <p className={styles.competitionChoiceText}>
+                  NIM <strong>{pendingNim}</strong> terdeteksi mengikuti lomba lain. Silakan pilih lomba yang ingin Anda periksa.
                 </p>
-                <div className={styles.competitionChoiceButtons}>
+                <div className={styles.competitionChoiceList}>
                   {competitionOptions.map((option) => (
                     <button
                       key={option.id}
                       type="button"
-                      className={styles.competitionChoiceButton}
+                      className={styles.competitionChoiceOption}
                       onClick={() => void submitScoreCheck(pendingNim, option.id)}
                     >
                       {option.label}

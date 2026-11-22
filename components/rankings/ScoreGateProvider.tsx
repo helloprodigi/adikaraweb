@@ -2,7 +2,11 @@
 
 import { createContext, useCallback, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ScoreCompetitionId } from "./scoreCompetition";
+import {
+  isDataMiningCompetition,
+  type ScoreCompetitionId,
+} from "./scoreCompetition";
+import { CountdownScoreGate } from "./CountdownScoreGate";
 import { ScoreGateOverlay } from "./ScoreGateOverlay";
 
 type PendingScore = {
@@ -49,11 +53,21 @@ export function ScoreGateProvider({ children }: { children: React.ReactNode }) {
     <ScoreGateContext.Provider value={{ openScoreGate }}>
       {children}
       {pending && (
-        <ScoreGateOverlay
-          nim={pending.nim}
-          onNavigate={handleNavigate}
-          onFinish={handleFinish}
-        />
+        <>
+          {isDataMiningCompetition(pending.competition) ? (
+            <CountdownScoreGate
+              nim={pending.nim}
+              onNavigate={handleNavigate}
+              onFinish={handleFinish}
+            />
+          ) : (
+            <ScoreGateOverlay
+              nim={pending.nim}
+              onNavigate={handleNavigate}
+              onFinish={handleFinish}
+            />
+          )}
+        </>
       )}
     </ScoreGateContext.Provider>
   );
